@@ -38,7 +38,7 @@ Once installed, the extension will automatically take care of ads on YouTube, al
 <h2>Support</h2>
 
 <p>
-Having trouble? Write <a href="[#](https://t.me/omar07ibrahim)">Here</a> and we'll help you sort it out.
+Having trouble? Write <a href="https://t.me/omar07ibrahim">Here</a> and we'll help you sort it out.
 </p>
 
 <h2>Screenshots</h2>
