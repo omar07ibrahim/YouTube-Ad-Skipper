@@ -44,14 +44,15 @@ Having trouble? Check out the <a href="#">issues tracker</a> and we'll help you 
 <h2>Screenshots</h2>
 
 <div align="center">
-  <img src="#" alt="images/menu.png" width="700px" />
+  <img src="image/menu.png" alt="Screenshot 1" width="700px" />
   <p><em>Extension settings interface.</em></p>
 </div>
 
 <div align="center">
-  <img src="#" alt="Screenshot 2" width="700px" />
+  <img src="image/mini.png" alt="Screenshot 2" width="700px" />
   <p><em>See the extension skipping a YouTube ad.</em></p>
 </div>
+
 
 <div align="center">
   <p><strong>Enjoy your enhanced YouTube experience!</strong></p>
