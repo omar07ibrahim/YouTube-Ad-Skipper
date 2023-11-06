@@ -44,12 +44,12 @@ Having trouble? Check out the <a href="#">issues tracker</a> and we'll help you 
 <h2>Screenshots</h2>
 
 <div align="center">
-  <img src="https://ltdfoto.ru/images/2023/11/06/menu.png" alt="Extension settings interface" width="700px" />
+  <img src="https://ltdfoto.ru/images/2023/11/06/menu.png" alt="Extension settings interface" width="300px" />
   <p><em>Extension settings interface.</em></p>
 </div>
 
 <div align="center">
-  <img src="https://ltdfoto.ru/images/2023/11/06/mini.png" alt="See the extension skipping a YouTube ad" width="700px" />
+  <img src="https://ltdfoto.ru/images/2023/11/06/mini.png" alt="See the extension skipping a YouTube ad" width="200px" />
   <p><em>See the extension skipping a YouTube ad.</em></p>
 </div>
 
