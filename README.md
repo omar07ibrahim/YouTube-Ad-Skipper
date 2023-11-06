@@ -44,7 +44,7 @@ Having trouble? Check out the <a href="#">issues tracker</a> and we'll help you 
 <h2>Screenshots</h2>
 
 <div align="center">
-  <img src="#" alt="Screenshot 1" width="700px" />
+  <img src="#" alt="images/menu.png" width="700px" />
   <p><em>Extension settings interface.</em></p>
 </div>
 
