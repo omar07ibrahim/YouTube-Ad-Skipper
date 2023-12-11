@@ -6,7 +6,7 @@ function checkForAds() {
     video.playbackRate = 9.5;
   }
 
-  let skipButton = document.getElementsByClassName("ytp-ad-skip-button ytp-button")[0];
+  let skipButton = document.getElementsByClassName("ytp-ad-skip-button-modern ytp-button")[0]
   if (skipButton && !skipButton.clicked) {
     skipButton.click();
     skipButton.clicked = true;
