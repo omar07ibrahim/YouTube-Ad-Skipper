@@ -55,5 +55,5 @@ Having trouble? Write <a href="https://t.me/omar07ibrahim">Here</a> and we'll he
 
 
 <div align="center">
-  <p><strong>Enjoy your enhanced YouTube experience!</strong></p>
+  <p><strong>https://kofe.al/@gagalar</strong></p>
 </div>
