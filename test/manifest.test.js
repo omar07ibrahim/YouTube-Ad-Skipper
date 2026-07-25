@@ -14,6 +14,7 @@ test("manifest uses one least-privilege static content script", () => {
   assert.equal(manifest.manifest_version, 3);
   assert.deepEqual(manifest.permissions, ["storage"]);
   assert.equal("host_permissions" in manifest, false);
+  assert.equal("content_security_policy" in manifest, false);
   assert.equal(manifest.content_scripts.length, 1);
   assert.deepEqual(manifest.content_scripts[0].matches, [
     "https://www.youtube.com/*",
@@ -32,6 +33,32 @@ test("all local files referenced by the manifest exist", () => {
   ];
 
   for (const relativePath of new Set(referenced)) {
+    assert.equal(
+      fs.existsSync(path.join(root, relativePath)),
+      true,
+      `${relativePath} must exist`,
+    );
+  }
+});
+
+test("popup references only existing packaged scripts, styles, and images", () => {
+  const popup = fs.readFileSync(
+    path.join(root, manifest.action.default_popup),
+    "utf8",
+  );
+  const localAssets = [
+    ...Array.from(
+      popup.matchAll(/<(?:img|script)\b[^>]*\bsrc="([^"]+)"/gi),
+      (match) => match[1],
+    ),
+    ...Array.from(
+      popup.matchAll(/<link\b[^>]*\bhref="([^"]+)"/gi),
+      (match) => match[1],
+    ),
+  ];
+
+  for (const relativePath of localAssets) {
+    assert.doesNotMatch(relativePath, /^https?:/);
     assert.equal(
       fs.existsSync(path.join(root, relativePath)),
       true,
