@@ -1,7 +1,7 @@
 # YouTube Ad Skipper
 
 <p align="center">
-  <img src="images/icon128.png" width="126" height="126" alt="YouTube Ad Skipper icon">
+  <img src="images/icon128.png" width="128" height="128" alt="YouTube Ad Skipper icon">
 </p>
 
 A small Manifest V3 extension that uses YouTube's rendered player controls: it
@@ -27,26 +27,47 @@ to an available skip control; it is not proof that YouTube completed a skip.
 
 ## Runtime workflow
 
-```mermaid
-flowchart LR
-    A[Static content script] --> B{Ad-active player?}
-    B -- no --> C[Remember normal rate]
-    B -- yes --> D{Eligible skip control?}
-    D -- yes --> E[Restore owned rate]
-    E --> F[Click once and report action]
-    D -- no --> G{Grace elapsed and >8 s left?}
-    G -- yes --> H[Cap extension rate at 2x]
-    G -- no --> I[Keep or restore original rate]
-    F --> J[MV3 service worker]
-    J --> K[Serialized chrome.storage update]
-    K --> L[Popup and badge]
-```
+![Runtime architecture: one content controller and rate-ownership state machine feed an exact message boundary, MV3 worker, trusted storage, popup, and badge](docs/assets/architecture.svg)
 
 The state machine treats YouTube's DOM as an unstable adapter. Source changes,
 time rollbacks, page lifecycle events, user rate changes, and temporary media
 setter failures have explicit recovery paths.
 
+## Reproducible visual evidence
+
+### Real unpacked-extension popup
+
+<p align="center">
+  <img src="docs/assets/popup-offline-fixture.png" width="336" alt="Actual YouTube Ad Skipper popup showing one skip action after the offline DOM-contract fixture">
+</p>
+
+This is the actual packaged popup in Chromium 140, not a UI mockup. A fresh
+profile loaded the unpacked extension; one clearly named offline DOM-contract
+fixture exercised the real content script and MV3 service worker, producing the
+visible count of `1`. The capture aborted every other HTTP(S) request. It is
+evidence of the extension boundary, not a claim about a live YouTube ad.
+
+### Production policy output
+
+![Terminal-style rendering of the deterministic production-function policy matrix produced by content.js](docs/assets/policy-matrix.png)
+
+The underlying [plain-text transcript](docs/evidence/policy-matrix.txt) is
+computed directly by `content.js::choosePlaybackRate`. The scenarios expose the
+grace boundary, long-ad ceiling, short remainder, user-selected rate, and
+unknown-duration fallback.
+
+### Measured test coverage
+
+![Line, branch, and function coverage for background.js, content.js, and popup.js](docs/assets/coverage.svg)
+
+The chart is generated from Node's built-in coverage report. Exact values live
+in [coverage-summary.json](docs/evidence/coverage-summary.json); every input and
+output hash, browser version, fixture contract, and network rule is recorded in
+[visual-manifest.json](docs/evidence/visual-manifest.json).
+
 ## Install the unpacked extension
+
+![Five-step setup flow: clone, open Chrome extensions, enable Developer mode, load the unpacked root, then inspect the popup and console](docs/assets/setup-flow.svg)
 
 1. Clone this repository.
 2. Open `chrome://extensions`.
@@ -59,11 +80,12 @@ extension contexts with `storage.local.setAccessLevel`.
 
 ## Verify the implementation
 
-No package download is needed for the core checks. Node.js 18 or newer is
-enough:
+The extension runtime and core tests have no third-party dependencies. Node.js
+18 or newer is enough; `npm ci` installs the two pinned development tools used
+for PNG and Chromium evidence:
 
 ```bash
-npm ci
+npm ci --ignore-scripts
 npm run check
 npm run coverage
 ```
@@ -72,6 +94,27 @@ The tests exercise rate ownership, short-ad boundaries, ad-pod transitions,
 retryable restoration, one-click-per-episode behavior, concurrent counter
 updates, sender validation, permission minimization, and every local manifest
 asset.
+
+The checked-in visuals are regenerated with a digest-pinned official Playwright
+container:
+
+```bash
+npm run visuals:capture
+npm run visuals:verify
+```
+
+The wrapper first performs a fresh `npm ci --ignore-scripts` in disposable
+scratch space, where npm verifies the pinned package integrities. The capture
+container mounts an isolated scratch tree containing the hash-bound source
+inputs plus freshly lockfile-installed development dependencies—not the working
+repository—with private IPC, a loopback-only network namespace, and a fresh
+browser profile. Only verified, allowlisted outputs are promoted back; all
+scratch data is removed.
+
+The manifest and bound scripts form a reproducibility and drift contract. They
+record the exact image digest, tool versions, observed network namespace,
+fixture fulfillment, inputs, and outputs. This is useful provenance evidence,
+not cryptographic attestation of the machine or operator.
 
 ## Privacy and permissions
 
@@ -91,8 +134,8 @@ image. Compatibility reports belong in
 
 YouTube's CSS classes are not a public API and can change without notice. The
 pure controller and service-worker behavior are covered by deterministic tests;
-an unpacked Chromium acceptance run is still required before version 2 is
-tagged or issue
+the offline unpacked-extension boundary is captured above. A live-site
+Chromium acceptance run is still required before version 2 is tagged or issue
 [#3](https://github.com/omar07ibrahim/YouTube-Ad-Skipper/issues/3) is closed.
 In particular, a real short-ad run must confirm that the grace policy behaves
 as intended.

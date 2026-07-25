@@ -1,0 +1,151 @@
+{
+  "schemaVersion": 1,
+  "browserEvidence": {
+    "chromium": "140.0.7339.186",
+    "containerImage": "mcr.microsoft.com/playwright:v1.55.1-noble@sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c",
+    "networkMode": "none",
+    "networkBoundary": {
+      "interfaceNames": [
+        "lo"
+      ],
+      "nonLoopbackAddressCount": 0,
+      "defaultRoutePresent": false
+    },
+    "extensionIdDerivedFromWorker": true,
+    "initialCount": 0,
+    "fixtureCount": 1,
+    "fixtureFulfillments": 1,
+    "fixtureUrl": "https://www.youtube.com/watch?v=ytas-offline-contract-fixture",
+    "playwright": "1.55.1"
+  },
+  "capturePolicy": {
+    "network": "The digest-pinned Docker capture required a loopback-only namespace with no IPv4 default route; one HTTPS fixture request was fulfilled locally by Playwright routing.",
+    "popup": "Real unpacked-extension popup observed at count 0, then count 1 after the real content script and service worker processed one offline DOM-contract fixture.",
+    "policyMatrix": "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
+    "provenance": "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator."
+  },
+  "inputs": {
+    "README.md": {
+      "bytes": 6036,
+      "sha256": "4cdf9935e682b94cc8ae450d42b41e32286128f50547f773b45254d38fbb0224"
+    },
+    "background.js": {
+      "bytes": 3981,
+      "sha256": "a2208dfcf2b37df1c833c6a1209eb6c64c6f4ffee2229be8b9bf53566dfb5614"
+    },
+    "content.js": {
+      "bytes": 11322,
+      "sha256": "597a7af171a92c0e0d2f2d0464f0987a0435610198ee25261d37ba0a90474634"
+    },
+    "images/icon126-source.png": {
+      "bytes": 3995,
+      "sha256": "d5c2208dcff2b709eaba487b290e54dbe59d102283903d3eb0355ac3a1ee29ce"
+    },
+    "images/icon16.png": {
+      "bytes": 658,
+      "sha256": "ead454601dffb6a9845db0a6af2325150ebb827832f59113c1c4eaf58bc66308"
+    },
+    "images/icon48.png": {
+      "bytes": 1764,
+      "sha256": "c0992121b80713d5562b97daa9f1816802b8e303dff9ac6ef60536883ef0e8c6"
+    },
+    "manifest.json": {
+      "bytes": 750,
+      "sha256": "badc192417614bfd1120a6d9086019bdd0eebc8c5950c82699fb17efcb604d6d"
+    },
+    "package-lock.json": {
+      "bytes": 2085,
+      "sha256": "2542a799d1aa10056525b46f85f7153f86a09698a29f808225091ff4b61cad9b"
+    },
+    "package.json": {
+      "bytes": 916,
+      "sha256": "a447b4cc5352b759c42dc55042927245d0f651f1aaf8d34e6c48eb57964d6ce3"
+    },
+    "popup.css": {
+      "bytes": 3617,
+      "sha256": "f6a4815a077cf8d3d62e147af9908845933b3afb72cb9465f9da76be8c37f72a"
+    },
+    "popup.html": {
+      "bytes": 2353,
+      "sha256": "ad368d3eb30cb1268766f3a10ec6323405f9e12d599b288353083feb27eec62a"
+    },
+    "popup.js": {
+      "bytes": 1961,
+      "sha256": "37f0d595e9e2a0b5df1b061fbfb53e2d333ad1a9d2e4977b0ebfa20b32912f0c"
+    },
+    "scripts/capture-visuals-docker.sh": {
+      "bytes": 2944,
+      "sha256": "12b63f622d733167d30fd44a25fee9955162fa078d7a1c054ebe72f63e192ceb"
+    },
+    "scripts/capture-visuals.mjs": {
+      "bytes": 23148,
+      "sha256": "c667d9117ebb590a8bf0ecb217c7c62c50f431bb066f0146ff10402dcd23b99b"
+    },
+    "scripts/promote-visuals.mjs": {
+      "bytes": 5265,
+      "sha256": "89d0dd8ffb31c29d95c92ba89620d2540d29bd17d73e6a387f31b6022d4b1799"
+    },
+    "scripts/verify-evidence.mjs": {
+      "bytes": 13404,
+      "sha256": "33cf53d79721c7d5144b43c0d4071889757794a2227912a858eaae887bf6a7a9"
+    },
+    "scripts/visual-contract.json": {
+      "bytes": 1235,
+      "sha256": "a682f19fd4bd43ac3ef1d3223249de36cca55f82db9585c964d5c68d7c104332"
+    },
+    "test/background.test.js": {
+      "bytes": 6181,
+      "sha256": "6802de9a9a80170ad099cb8a9e61d316e58deb5883b800ffe570e15a8f56391f"
+    },
+    "test/content.test.js": {
+      "bytes": 11216,
+      "sha256": "33667f27cd8d7d6d80d4cd8fef40581a512d7e423579db47424ff195b3983087"
+    },
+    "test/manifest.test.js": {
+      "bytes": 2330,
+      "sha256": "245fb8f25f4907c2a3b1d0c2d26696e58094f343de9f933145fa14ebbb2e95fa"
+    },
+    "test/popup.test.js": {
+      "bytes": 4735,
+      "sha256": "feac5fb044afb91f68a54930d733b9ae0462bec3b859c0a099e5a969cb9546c2"
+    }
+  },
+  "outputs": {
+    "docs/assets/architecture.svg": {
+      "bytes": 4375,
+      "sha256": "a900f20570d2d7c729211c4891550155cf616ce3ff04dff2e55ace4c4407f041"
+    },
+    "docs/assets/coverage.svg": {
+      "bytes": 3766,
+      "sha256": "20ed5ec5f894f60e492d17f2bc0a89cd036bf612cb634ddaf5e0245e09fc3d50"
+    },
+    "docs/assets/policy-matrix.png": {
+      "bytes": 34690,
+      "sha256": "4e470410d22a70c053f1aa26e1386d7071d4090f9f673234435164400bea8b12"
+    },
+    "docs/assets/popup-offline-fixture.png": {
+      "bytes": 76309,
+      "sha256": "3535732f5794bf6a431098187c870b5d128fcd8941d5cc31a79a01dd14674b08"
+    },
+    "docs/assets/setup-flow.svg": {
+      "bytes": 3622,
+      "sha256": "58e845c8ad7a0a7628074ec2a0cbe2f941f9481f75018ef15b0544ca1865a7e9"
+    },
+    "docs/evidence/coverage-summary.json": {
+      "bytes": 382,
+      "sha256": "3cd99fdcba7814612b1e9e6be3c646e5f81569c204f7811d34231559a187e29a"
+    },
+    "docs/evidence/policy-matrix.txt": {
+      "bytes": 527,
+      "sha256": "0c7a1148ca20a502f514332e4d6a3e854d1aabf40108a9e548b6bf5f0d4b1f8a"
+    },
+    "images/icon128.png": {
+      "bytes": 5328,
+      "sha256": "7cb767102581d32d22b3e1b75f441c8688ca7b77d0307a764d1ad76008acd4ba"
+    }
+  },
+  "toolchain": {
+    "node": "v22.19.0",
+    "playwright": "1.55.1"
+  }
+}

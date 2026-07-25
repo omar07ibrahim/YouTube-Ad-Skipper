@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "containerImage": "mcr.microsoft.com/playwright:v1.55.1-noble@sha256:2f29369043d81d6d69a815ceb80760f55e85f5020371ad06a4d996f18503ad1c",
+  "networkMode": "none",
+  "networkInterfaces": [
+    "lo"
+  ],
+  "defaultRoutePresent": false,
+  "fixtureUrl": "https://www.youtube.com/watch?v=ytas-offline-contract-fixture",
+  "initialCount": 0,
+  "fixtureCount": 1,
+  "chromium": "140.0.7339.186",
+  "node": "v22.19.0",
+  "playwright": "1.55.1",
+  "staticInputs": [
+    "README.md",
+    "background.js",
+    "content.js",
+    "images/icon126-source.png",
+    "images/icon16.png",
+    "images/icon48.png",
+    "manifest.json",
+    "package-lock.json",
+    "package.json",
+    "popup.css",
+    "popup.html",
+    "popup.js",
+    "scripts/capture-visuals-docker.sh",
+    "scripts/capture-visuals.mjs",
+    "scripts/promote-visuals.mjs",
+    "scripts/verify-evidence.mjs",
+    "scripts/visual-contract.json"
+  ],
+  "outputs": [
+    "docs/assets/architecture.svg",
+    "docs/assets/coverage.svg",
+    "docs/assets/policy-matrix.png",
+    "docs/assets/popup-offline-fixture.png",
+    "docs/assets/setup-flow.svg",
+    "docs/evidence/coverage-summary.json",
+    "docs/evidence/policy-matrix.txt",
+    "images/icon128.png"
+  ]
+}

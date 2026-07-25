@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "coverage": [
+    {
+      "file": "background.js",
+      "lines": 96.13,
+      "branches": 92.86,
+      "functions": 87.5
+    },
+    {
+      "file": "content.js",
+      "lines": 94.13,
+      "branches": 85.07,
+      "functions": 90.91
+    },
+    {
+      "file": "popup.js",
+      "lines": 94.44,
+      "branches": 86.36,
+      "functions": 100
+    }
+  ]
+}

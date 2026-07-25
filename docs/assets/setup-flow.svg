@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="260"
+     viewBox="0 0 1200 260" role="img" aria-labelledby="title description">
+  <title id="title">Unpacked extension setup flow</title>
+  <desc id="description">Clone the repository, open Chrome extensions, enable Developer mode, load the unpacked repository root, and inspect the popup and console.</desc>
+  <defs>
+    <marker id="arrow" markerWidth="9" markerHeight="9" refX="7" refY="3"
+            orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L8,3 z" fill="#64748b"/>
+    </marker>
+    <style>
+      .eyebrow { fill: #f87171; font: 700 13px system-ui, sans-serif; letter-spacing: 2px; }
+      .heading { fill: #f8fafc; font: 750 25px system-ui, sans-serif; }
+      .number { fill: #fff; font: 750 15px system-ui, sans-serif; }
+      .title { fill: #f8fafc; font: 700 17px system-ui, sans-serif; }
+      .detail { fill: #94a3b8; font: 500 13px ui-monospace, monospace; }
+      .arrow { fill: none; stroke: #64748b; stroke-width: 3; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1200" height="260" rx="24" fill="#090d16"/>
+  <text x="38" y="42" class="eyebrow">SETUP · NO BUILD STEP</text>
+  <text x="38" y="76" class="heading">From clone to a loaded Manifest V3 extension</text>
+<path d="M 256 148 L 282 148" class="arrow"/><path d="M 488 148 L 514 148" class="arrow"/><path d="M 720 148 L 746 148" class="arrow"/><path d="M 952 148 L 978 148" class="arrow"/>
+
+        <g>
+          <circle cx="62" cy="148" r="24" fill="#ef4444"/>
+          <text x="62" y="155" text-anchor="middle" class="number">1</text>
+          <rect x="98" y="103" width="158" height="90" rx="16"
+                fill="#111827" stroke="#334155" stroke-width="2"/>
+          <text x="116" y="139" class="title">Clone</text>
+          <text x="116" y="166" class="detail">repository</text>
+        </g>
+        <g>
+          <circle cx="294" cy="148" r="24" fill="#ef4444"/>
+          <text x="294" y="155" text-anchor="middle" class="number">2</text>
+          <rect x="330" y="103" width="158" height="90" rx="16"
+                fill="#111827" stroke="#334155" stroke-width="2"/>
+          <text x="348" y="139" class="title">Open</text>
+          <text x="348" y="166" class="detail">chrome://extensions</text>
+        </g>
+        <g>
+          <circle cx="526" cy="148" r="24" fill="#ef4444"/>
+          <text x="526" y="155" text-anchor="middle" class="number">3</text>
+          <rect x="562" y="103" width="158" height="90" rx="16"
+                fill="#111827" stroke="#334155" stroke-width="2"/>
+          <text x="580" y="139" class="title">Enable</text>
+          <text x="580" y="166" class="detail">Developer mode</text>
+        </g>
+        <g>
+          <circle cx="758" cy="148" r="24" fill="#ef4444"/>
+          <text x="758" y="155" text-anchor="middle" class="number">4</text>
+          <rect x="794" y="103" width="158" height="90" rx="16"
+                fill="#111827" stroke="#334155" stroke-width="2"/>
+          <text x="812" y="139" class="title">Load</text>
+          <text x="812" y="166" class="detail">unpacked root</text>
+        </g>
+        <g>
+          <circle cx="990" cy="148" r="24" fill="#ef4444"/>
+          <text x="990" y="155" text-anchor="middle" class="number">5</text>
+          <rect x="1026" y="103" width="158" height="90" rx="16"
+                fill="#111827" stroke="#334155" stroke-width="2"/>
+          <text x="1044" y="139" class="title">Inspect</text>
+          <text x="1044" y="166" class="detail">popup + console</text>
+        </g>
+</svg>

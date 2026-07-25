@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1040" height="530"
+     viewBox="0 0 1040 530" role="img" aria-labelledby="title description">
+  <title id="title">Extension source coverage</title>
+  <desc id="description">Line, branch, and function coverage produced by the Node test runner for background, content, and popup scripts.</desc>
+  <style>
+    .eyebrow { fill: #f87171; font: 700 13px system-ui, sans-serif; letter-spacing: 2px; }
+    .heading { fill: #f8fafc; font: 750 28px system-ui, sans-serif; }
+    .file { fill: #f8fafc; font: 700 17px ui-monospace, monospace; }
+    .metric { fill: #94a3b8; font: 500 13px system-ui, sans-serif; }
+    .value { fill: #cbd5e1; font: 650 13px ui-monospace, monospace; }
+  </style>
+  <rect width="1040" height="530" rx="24" fill="#090d16"/>
+  <text x="42" y="48" class="eyebrow">MEASURED EVIDENCE</text>
+  <text x="42" y="84" class="heading">Node built-in coverage</text>
+
+        <text x="42" y="166" class="file">background.js</text>
+
+            <text x="188" y="166" class="metric">lines</text>
+            <rect x="280" y="152" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="152" width="596" height="18" rx="9" fill="#ef4444"/>
+            <text x="920" y="166" class="value">96.13%</text>
+            <text x="188" y="193" class="metric">branches</text>
+            <rect x="280" y="179" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="179" width="576" height="18" rx="9" fill="#8b5cf6"/>
+            <text x="920" y="193" class="value">92.86%</text>
+            <text x="188" y="220" class="metric">functions</text>
+            <rect x="280" y="206" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="206" width="543" height="18" rx="9" fill="#14b8a6"/>
+            <text x="920" y="220" class="value">87.50%</text>
+        <text x="42" y="290" class="file">content.js</text>
+
+            <text x="188" y="290" class="metric">lines</text>
+            <rect x="280" y="276" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="276" width="584" height="18" rx="9" fill="#ef4444"/>
+            <text x="920" y="290" class="value">94.13%</text>
+            <text x="188" y="317" class="metric">branches</text>
+            <rect x="280" y="303" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="303" width="527" height="18" rx="9" fill="#8b5cf6"/>
+            <text x="920" y="317" class="value">85.07%</text>
+            <text x="188" y="344" class="metric">functions</text>
+            <rect x="280" y="330" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="330" width="564" height="18" rx="9" fill="#14b8a6"/>
+            <text x="920" y="344" class="value">90.91%</text>
+        <text x="42" y="414" class="file">popup.js</text>
+
+            <text x="188" y="414" class="metric">lines</text>
+            <rect x="280" y="400" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="400" width="586" height="18" rx="9" fill="#ef4444"/>
+            <text x="920" y="414" class="value">94.44%</text>
+            <text x="188" y="441" class="metric">branches</text>
+            <rect x="280" y="427" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="427" width="535" height="18" rx="9" fill="#8b5cf6"/>
+            <text x="920" y="441" class="value">86.36%</text>
+            <text x="188" y="468" class="metric">functions</text>
+            <rect x="280" y="454" width="620" height="18" rx="9" fill="#1e293b"/>
+            <rect x="280" y="454" width="620" height="18" rx="9" fill="#14b8a6"/>
+            <text x="920" y="468" class="value">100.00%</text>
+</svg>
