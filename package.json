@@ -4,7 +4,7 @@
   "private": true,
   "description": "A dependency-free Manifest V3 extension with a conservative ad playback state machine.",
   "scripts": {
-    "lint": "node --check background.js && node --check content.js && node --check popup.js && node --check scripts/capture-visuals.mjs && node --check scripts/promote-visuals.mjs && node --check scripts/verify-evidence.mjs && bash -n scripts/capture-visuals-docker.sh",
+    "lint": "node --check background.js && node --check content.js && node --check popup.js && node --check scripts/capture-visuals.mjs && node --check scripts/gif-evidence.mjs && node --check scripts/promote-visuals.mjs && node --check scripts/verify-evidence.mjs && bash -n scripts/capture-visuals-docker.sh",
     "test": "node --test test/*.test.js",
     "coverage": "node --experimental-test-coverage --test test/*.test.js",
     "visuals:capture": "bash scripts/capture-visuals-docker.sh",
@@ -15,6 +15,7 @@
     "node": ">=18"
   },
   "devDependencies": {
+    "gifenc": "1.0.3",
     "playwright": "1.55.1",
     "pngjs": "7.0.0"
   },

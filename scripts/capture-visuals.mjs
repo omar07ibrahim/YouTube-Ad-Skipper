@@ -7,10 +7,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { chromium } from "playwright";
+import gifenc from "gifenc";
 import pngjs from "pngjs";
 
 const require = createRequire(import.meta.url);
 const { choosePlaybackRate } = require("../content.js");
+const { GIFEncoder, applyPalette, quantize } = gifenc;
 const { version: playwrightVersion } = require("playwright/package.json");
 const { PNG } = pngjs;
 
@@ -23,6 +25,7 @@ const CONTRACT = JSON.parse(
   await readFile(path.join(SCRIPT_DIR, "visual-contract.json"), "utf8"),
 );
 const FIXTURE_URL = CONTRACT.fixtureUrl;
+const WORKFLOW_GIF = CONTRACT.workflowGif;
 
 function relative(absolutePath) {
   return path.relative(ROOT, absolutePath).split(path.sep).join("/");
@@ -103,6 +106,148 @@ async function normalizeIcon() {
       throw new Error("normalized icon border is not fully transparent");
     }
   }
+}
+
+async function renderWorkflowFrame(page, frame, outputPath) {
+  const image = (await readFile(frame.imagePath)).toString("base64");
+  await page.setViewportSize({
+    width: WORKFLOW_GIF.width,
+    height: WORKFLOW_GIF.height,
+  });
+  await page.setContent(`<!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8">
+        <style>
+          * { box-sizing: border-box; }
+          html, body {
+            width: ${WORKFLOW_GIF.width}px;
+            height: ${WORKFLOW_GIF.height}px;
+            margin: 0;
+            overflow: hidden;
+          }
+          body {
+            display: grid;
+            grid-template-columns: 270px 1fr;
+            gap: 30px;
+            padding: 38px;
+            background:
+              radial-gradient(circle at 88% 8%, rgb(239 68 68 / 18%), transparent 34%),
+              #090d16;
+            color: #e2e8f0;
+            font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+          }
+          aside {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 22px 0 18px;
+          }
+          .eyebrow {
+            margin: 0 0 18px;
+            color: #f87171;
+            font-size: 13px;
+            font-weight: 800;
+            letter-spacing: 1.7px;
+          }
+          .step {
+            margin: 0 0 10px;
+            color: #94a3b8;
+            font: 700 14px ui-monospace, SFMono-Regular, Consolas, monospace;
+          }
+          h1 {
+            margin: 0;
+            color: #f8fafc;
+            font-size: 34px;
+            line-height: 1.08;
+            letter-spacing: -1px;
+          }
+          .detail {
+            margin: 20px 0 0;
+            color: #cbd5e1;
+            font-size: 16px;
+            line-height: 1.55;
+          }
+          .boundary {
+            margin: 0;
+            padding-top: 16px;
+            border-top: 1px solid #334155;
+            color: #94a3b8;
+            font: 600 12px/1.5 ui-monospace, SFMono-Regular, Consolas, monospace;
+          }
+          main {
+            display: grid;
+            place-items: center;
+            min-width: 0;
+            border: 1px solid #334155;
+            border-radius: 22px;
+            background: #111827;
+            box-shadow: 0 24px 70px rgb(0 0 0 / 36%);
+            overflow: hidden;
+          }
+          img {
+            display: block;
+            max-width: 100%;
+            max-height: 458px;
+            object-fit: contain;
+          }
+        </style>
+      </head>
+      <body>
+        <aside>
+          <div>
+            <p class="eyebrow">REAL UNPACKED EXTENSION · OFFLINE</p>
+            <p class="step">${escapeHtml(frame.step)}</p>
+            <h1>${escapeHtml(frame.title)}</h1>
+            <p class="detail">${escapeHtml(frame.detail)}</p>
+          </div>
+          <p class="boundary">${escapeHtml(frame.boundary)}</p>
+        </aside>
+        <main>
+          <img src="data:image/png;base64,${image}" alt="">
+        </main>
+      </body>
+    </html>`);
+  await page.screenshot({
+    animations: "disabled",
+    path: outputPath,
+  });
+}
+
+async function encodeWorkflowGif(framePaths) {
+  if (
+    !Number.isInteger(WORKFLOW_GIF.width) ||
+    !Number.isInteger(WORKFLOW_GIF.height) ||
+    !Array.isArray(WORKFLOW_GIF.delaysMs) ||
+    framePaths.length !== WORKFLOW_GIF.frameCount ||
+    framePaths.length !== WORKFLOW_GIF.delaysMs.length
+  ) {
+    throw new Error("invalid workflow GIF contract");
+  }
+
+  const gif = GIFEncoder();
+  for (const [index, framePath] of framePaths.entries()) {
+    const frame = PNG.sync.read(await readFile(framePath));
+    if (
+      frame.width !== WORKFLOW_GIF.width ||
+      frame.height !== WORKFLOW_GIF.height
+    ) {
+      throw new Error("workflow GIF frame dimensions drifted");
+    }
+    const palette = quantize(frame.data, 256);
+    const indexed = applyPalette(frame.data, palette);
+    gif.writeFrame(indexed, frame.width, frame.height, {
+      delay: WORKFLOW_GIF.delaysMs[index],
+      dispose: 1,
+      palette,
+      repeat: 0,
+    });
+  }
+  gif.finish();
+  await writeFile(
+    path.join(ASSET_DIR, "offline-workflow.gif"),
+    Buffer.from(gif.bytes()),
+  );
 }
 
 function buildPolicyTranscript() {
@@ -444,19 +589,79 @@ function fixtureHtml() {
     <meta charset="utf-8">
     <title>YTAS offline DOM contract fixture</title>
     <style>
-      body { margin: 0; padding: 40px; font: 16px system-ui; }
-      .html5-video-player { width: 640px; height: 360px; background: #111827; }
-      .ytp-ad-skip-button-modern { margin: 130px 230px; padding: 14px 22px; }
+      * { box-sizing: border-box; }
+      body {
+        width: 720px;
+        height: 440px;
+        margin: 0;
+        padding: 28px;
+        overflow: hidden;
+        background: #090d16;
+        color: #e2e8f0;
+        font: 16px system-ui, sans-serif;
+      }
+      .fixture-label {
+        margin: 0 0 14px;
+        color: #f87171;
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.6px;
+      }
+      .html5-video-player {
+        position: relative;
+        width: 664px;
+        height: 332px;
+        border: 1px solid #334155;
+        border-radius: 16px;
+        background:
+          linear-gradient(145deg, rgb(30 41 59 / 92%), rgb(15 23 42 / 98%));
+        box-shadow: 0 18px 48px rgb(0 0 0 / 30%);
+      }
+      .player-title {
+        position: absolute;
+        top: 24px;
+        left: 26px;
+        margin: 0;
+        color: #94a3b8;
+        font: 650 13px ui-monospace, monospace;
+      }
+      .status {
+        position: absolute;
+        right: 26px;
+        bottom: 24px;
+        margin: 0;
+        color: #86efac;
+        font: 700 13px ui-monospace, monospace;
+      }
+      .ytp-ad-skip-button-modern {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        min-width: 220px;
+        padding: 16px 24px;
+        transform: translate(-50%, -50%);
+        border: 1px solid #475569;
+        border-radius: 999px;
+        background: #f8fafc;
+        color: #0f172a;
+        font: 750 15px system-ui, sans-serif;
+      }
     </style>
   </head>
   <body data-fixture="offline-dom-contract">
+    <p class="fixture-label">OFFLINE DOM-CONTRACT FIXTURE · NETWORK DISABLED</p>
     <main class="html5-video-player ad-showing">
       <video class="html5-main-video"></video>
+      <p class="player-title">YouTube player adapter boundary</p>
       <button class="ytp-ad-skip-button-modern" type="button">Fixture skip</button>
+      <p class="status" aria-live="polite">waiting for content script</p>
     </main>
     <script>
       document.querySelector("button").addEventListener("click", () => {
         document.body.dataset.skipClicked = "true";
+        document.querySelector("button").textContent = "Skip action handled";
+        document.querySelector(".status").textContent =
+          "content script → worker → storage";
       });
     </script>
   </body>
@@ -543,8 +748,17 @@ async function captureBrowserVisuals(policyTranscript) {
     const initialCount = Number(
       await popupPage.locator("#adsSkippedCount").textContent(),
     );
+    const workflowDir = path.join(ARTIFACT_DIR, "workflow-frames");
+    await rm(workflowDir, { force: true, recursive: true });
+    await mkdir(workflowDir, { recursive: true });
+    const initialPopupPath = path.join(workflowDir, "popup-initial.png");
+    await popupPage.locator("body").screenshot({
+      animations: "disabled",
+      path: initialPopupPath,
+    });
 
     const fixturePage = await context.newPage();
+    await fixturePage.setViewportSize({ width: 720, height: 440 });
     await fixturePage.goto(FIXTURE_URL, { waitUntil: "domcontentloaded" });
     await fixturePage.waitForFunction(
       () => document.body.dataset.skipClicked === "true",
@@ -565,10 +779,63 @@ async function captureBrowserVisuals(policyTranscript) {
     ) {
       throw new Error("offline fixture did not satisfy the capture contract");
     }
-    await popupPage.locator("body").screenshot({
+    const handledFixturePath = path.join(
+      workflowDir,
+      "fixture-handled.png",
+    );
+    await fixturePage.screenshot({
       animations: "disabled",
-      path: path.join(ASSET_DIR, "popup-offline-fixture.png"),
+      path: handledFixturePath,
     });
+    const finalPopupPath = path.join(workflowDir, "popup-final.png");
+    const finalPopup = await popupPage.locator("body").screenshot({
+      animations: "disabled",
+      path: finalPopupPath,
+    });
+    await writeFile(
+      path.join(ASSET_DIR, "popup-offline-fixture.png"),
+      finalPopup,
+    );
+
+    const workflowPage = await context.newPage();
+    const workflowFrames = [
+      {
+        boundary: "Chromium 140 · fresh profile · count read from storage",
+        detail:
+          "The actual packaged popup starts from durable local state.",
+        imagePath: initialPopupPath,
+        step: "01 / 03",
+        title: "Fresh profile",
+      },
+      {
+        boundary:
+          "One local HTTPS fulfillment · every other HTTP(S) request aborted",
+        detail:
+          "The real content script clicks the fixture control and reports one exact message.",
+        imagePath: handledFixturePath,
+        step: "02 / 03",
+        title: "Boundary exercised",
+      },
+      {
+        boundary:
+          "Content script → MV3 worker → trusted local storage → popup",
+        detail:
+          "The same unpacked extension popup observes the durable count change.",
+        imagePath: finalPopupPath,
+        step: "03 / 03",
+        title: "Count 0 → 1",
+      },
+    ];
+    const workflowFramePaths = [];
+    for (const [index, frame] of workflowFrames.entries()) {
+      const outputPath = path.join(
+        workflowDir,
+        `workflow-${String(index + 1).padStart(2, "0")}.png`,
+      );
+      await renderWorkflowFrame(workflowPage, frame, outputPath);
+      workflowFramePaths.push(outputPath);
+    }
+    await encodeWorkflowGif(workflowFramePaths);
 
     const transcriptPage = await context.newPage();
     await transcriptPage.setViewportSize({ width: 1120, height: 640 });
@@ -628,6 +895,13 @@ async function captureBrowserVisuals(policyTranscript) {
       fixtureFulfillments,
       fixtureUrl: FIXTURE_URL,
       playwright: playwrightVersion,
+      workflowGif: {
+        delaysMs: WORKFLOW_GIF.delaysMs,
+        frameCount: workflowFramePaths.length,
+        framePixelSha256: WORKFLOW_GIF.framePixelSha256,
+        height: WORKFLOW_GIF.height,
+        width: WORKFLOW_GIF.width,
+      },
     };
   } finally {
     await context.close();
@@ -659,6 +933,8 @@ async function buildEvidenceManifest(browserEvidence) {
         "The digest-pinned Docker capture required a loopback-only namespace with no IPv4 default route; one HTTPS fixture request was fulfilled locally by Playwright routing.",
       popup:
         "Real unpacked-extension popup observed at count 0, then count 1 after the real content script and service worker processed one offline DOM-contract fixture.",
+      workflowGif:
+        "Three annotated frames are composed from the actual fresh popup, handled offline fixture, and updated popup screenshots captured in the same Chromium session.",
       policyMatrix:
         "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
       provenance:

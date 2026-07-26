@@ -6,6 +6,8 @@ import { fileURLToPath } from "node:url";
 
 import pngjs from "pngjs";
 
+import { decodeGifEvidence } from "./gif-evidence.mjs";
+
 const { PNG } = pngjs;
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(SCRIPT_DIR, "..");
@@ -33,6 +35,17 @@ const EXPECTED_CONTRACT = {
   chromium: "140.0.7339.186",
   node: "v22.19.0",
   playwright: "1.55.1",
+  workflowGif: {
+    width: 960,
+    height: 540,
+    frameCount: 3,
+    delaysMs: [1600, 1900, 2400],
+    framePixelSha256: [
+      "6dc8b409c2dc8e32c313c6fd6ea052a94288ece8cc4939797437848e7e177407",
+      "527abf3a27fc69a73327d49f483a4b21d3f26b18adeb6a57089526a66950ab48",
+      "1b66fcad5f997b757b097c23c45d52ab0977664dd72d30a5908b2c254508bf39",
+    ],
+  },
   staticInputs: [
     "README.md",
     "background.js",
@@ -48,6 +61,7 @@ const EXPECTED_CONTRACT = {
     "popup.js",
     "scripts/capture-visuals-docker.sh",
     "scripts/capture-visuals.mjs",
+    "scripts/gif-evidence.mjs",
     "scripts/promote-visuals.mjs",
     "scripts/verify-evidence.mjs",
     "scripts/visual-contract.json",
@@ -55,6 +69,7 @@ const EXPECTED_CONTRACT = {
   outputs: [
     "docs/assets/architecture.svg",
     "docs/assets/coverage.svg",
+    "docs/assets/offline-workflow.gif",
     "docs/assets/policy-matrix.png",
     "docs/assets/popup-offline-fixture.png",
     "docs/assets/setup-flow.svg",
@@ -152,6 +167,57 @@ async function verifyPng(file, width, height = null) {
     throw new Error(
       `${file} dimensions ${image.width}×${image.height} do not match evidence contract`,
     );
+  }
+}
+
+async function verifyGif(file, expected) {
+  const bytes = await readFile(await resolveRegularFile(file));
+  if (bytes.length > 5_000_000) {
+    throw new Error(`${file} exceeds the evidence size ceiling`);
+  }
+
+  const decoded = decodeGifEvidence(bytes);
+  if (
+    decoded.width !== expected.width ||
+    decoded.height !== expected.height ||
+    decoded.screenPacked !== 0xf7 ||
+    decoded.backgroundColorIndex !== 0 ||
+    decoded.pixelAspectRatio !== 0 ||
+    decoded.repeat !== 0 ||
+    decoded.frames.length !== expected.frameCount
+  ) {
+    throw new Error(`${file} animation contract drifted`);
+  }
+  const delaysMs = decoded.frames.map((frame) => frame.delayMs);
+  const framePixelSha256 = decoded.frames.map(
+    (frame) => frame.pixelSha256,
+  );
+  if (
+    JSON.stringify(delaysMs) !== JSON.stringify(expected.delaysMs) ||
+    JSON.stringify(framePixelSha256) !==
+      JSON.stringify(expected.framePixelSha256)
+  ) {
+    throw new Error(`${file} timing or decoded pixels drifted`);
+  }
+  for (const [index, frame] of decoded.frames.entries()) {
+    if (
+      frame.left !== 0 ||
+      frame.top !== 0 ||
+      frame.width !== expected.width ||
+      frame.height !== expected.height ||
+      frame.interlaced ||
+      frame.sorted ||
+      frame.reservedImageBits !== 0 ||
+      frame.localColorTable !== (index !== 0) ||
+      frame.minimumCodeSize !== 8 ||
+      frame.packed !== 0x04 ||
+      frame.disposal !== 1 ||
+      frame.userInput ||
+      frame.transparent ||
+      frame.transparentIndex !== 0
+    ) {
+      throw new Error(`${file} frame encoding contract drifted`);
+    }
   }
 }
 
@@ -377,6 +443,14 @@ async function main() {
       fixtureFulfillments: 1,
       fixtureUrl: EXPECTED_CONTRACT.fixtureUrl,
       playwright: EXPECTED_CONTRACT.playwright,
+      workflowGif: {
+        delaysMs: EXPECTED_CONTRACT.workflowGif.delaysMs,
+        frameCount: EXPECTED_CONTRACT.workflowGif.frameCount,
+        framePixelSha256:
+          EXPECTED_CONTRACT.workflowGif.framePixelSha256,
+        height: EXPECTED_CONTRACT.workflowGif.height,
+        width: EXPECTED_CONTRACT.workflowGif.width,
+      },
     },
     "browser evidence contract drift",
   );
@@ -403,12 +477,14 @@ async function main() {
     await readFile(await resolveRegularFile("package-lock.json"), "utf8"),
   );
   if (
+    packageJson.devDependencies?.gifenc !== "1.0.3" ||
     packageJson.devDependencies?.playwright !==
       EXPECTED_CONTRACT.playwright ||
     packageJson.devDependencies?.pngjs !== "7.0.0" ||
     packageLock.packages?.["node_modules/playwright"]?.version !==
       EXPECTED_CONTRACT.playwright ||
-    packageLock.packages?.["node_modules/pngjs"]?.version !== "7.0.0"
+    packageLock.packages?.["node_modules/pngjs"]?.version !== "7.0.0" ||
+    packageLock.packages?.["node_modules/gifenc"]?.version !== "1.0.3"
   ) {
     throw new Error("visual dependency pins drift");
   }
@@ -438,6 +514,10 @@ async function main() {
   await verifyFiles(manifest.outputs, "visual output");
   await verifyPng("images/icon128.png", 128, 128);
   await verifyPaddedIcon();
+  await verifyGif(
+    "docs/assets/offline-workflow.gif",
+    EXPECTED_CONTRACT.workflowGif,
+  );
   await verifyPng("docs/assets/popup-offline-fixture.png", 336);
   await verifyPng("docs/assets/policy-matrix.png", 1120, 640);
   await verifySvg("docs/assets/architecture.svg");

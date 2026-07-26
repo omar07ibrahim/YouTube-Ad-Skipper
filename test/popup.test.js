@@ -173,4 +173,6 @@ test("README removes token-like links and makes bounded claims", () => {
   }
   assert.match(readme, /does not block ad requests/i);
   assert.match(readme, /not proof that YouTube completed a skip/i);
+  assert.match(readme, /docs\/assets\/offline-workflow\.gif/);
+  assert.match(readme, /not live\s+YouTube-ad acceptance/i);
 });

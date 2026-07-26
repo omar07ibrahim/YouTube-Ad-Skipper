@@ -12,6 +12,21 @@
   "chromium": "140.0.7339.186",
   "node": "v22.19.0",
   "playwright": "1.55.1",
+  "workflowGif": {
+    "width": 960,
+    "height": 540,
+    "frameCount": 3,
+    "delaysMs": [
+      1600,
+      1900,
+      2400
+    ],
+    "framePixelSha256": [
+      "6dc8b409c2dc8e32c313c6fd6ea052a94288ece8cc4939797437848e7e177407",
+      "527abf3a27fc69a73327d49f483a4b21d3f26b18adeb6a57089526a66950ab48",
+      "1b66fcad5f997b757b097c23c45d52ab0977664dd72d30a5908b2c254508bf39"
+    ]
+  },
   "staticInputs": [
     "README.md",
     "background.js",
@@ -27,6 +42,7 @@
     "popup.js",
     "scripts/capture-visuals-docker.sh",
     "scripts/capture-visuals.mjs",
+    "scripts/gif-evidence.mjs",
     "scripts/promote-visuals.mjs",
     "scripts/verify-evidence.mjs",
     "scripts/visual-contract.json"
@@ -34,6 +50,7 @@
   "outputs": [
     "docs/assets/architecture.svg",
     "docs/assets/coverage.svg",
+    "docs/assets/offline-workflow.gif",
     "docs/assets/policy-matrix.png",
     "docs/assets/popup-offline-fixture.png",
     "docs/assets/setup-flow.svg",

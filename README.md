@@ -35,6 +35,19 @@ setter failures have explicit recovery paths.
 
 ## Reproducible visual evidence
 
+### Offline extension workflow
+
+<p align="center">
+  <img src="docs/assets/offline-workflow.gif" width="720" alt="Three-frame recording of the real unpacked extension popup changing from zero to one after an offline DOM-contract fixture">
+</p>
+
+The GIF is composed from three screenshots captured in one real unpacked
+Chromium session: the fresh popup at `0`, the handled offline fixture, and the
+same popup at `1`. Captions are deterministic annotations; the popup and
+fixture pixels come from the running extension. Every other HTTP(S) request
+was aborted. This demonstrates the extension boundary only—it is not live
+YouTube-ad acceptance.
+
 ### Real unpacked-extension popup
 
 <p align="center">
@@ -81,8 +94,8 @@ extension contexts with `storage.local.setAccessLevel`.
 ## Verify the implementation
 
 The extension runtime and core tests have no third-party dependencies. Node.js
-18 or newer is enough; `npm ci` installs the two pinned development tools used
-for PNG and Chromium evidence:
+18 or newer is enough; `npm ci` installs three pinned development tools used
+for PNG, GIF, and Chromium evidence:
 
 ```bash
 npm ci --ignore-scripts
@@ -115,6 +128,12 @@ The manifest and bound scripts form a reproducibility and drift contract. They
 record the exact image digest, tool versions, observed network namespace,
 fixture fulfillment, inputs, and outputs. This is useful provenance evidence,
 not cryptographic attestation of the machine or operator.
+
+GIF verification does not stop at the file hash or animation envelope. The
+independent decoder bounds input and decompressed pixels, requires complete LZW
+streams and exact frame controls, then matches the decoded RGB SHA-256 of every
+frame. Negative tests cover malformed controls, missing end codes, trailing
+controls, and decompression-boundary abuse.
 
 ## Privacy and permissions
 
