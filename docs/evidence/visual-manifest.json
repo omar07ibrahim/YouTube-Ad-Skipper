@@ -102,8 +102,8 @@
       "sha256": "4c8b350f5115344a9c6928bb94e634c85b06251cf3650b7167424014bb80024d"
     },
     "scripts/lifecycle-evidence.mjs": {
-      "bytes": 8131,
-      "sha256": "df9a697c4a0a7e8b4a6bd6d65ff92c1bb4df776b9b3c28c1fb076a3a300b8868"
+      "bytes": 9117,
+      "sha256": "627af718c4ca9aeac941ed8d7dc5f649f327d62ab248cc8ae513c1d36050e827"
     },
     "scripts/promote-visuals.mjs": {
       "bytes": 5265,
@@ -130,8 +130,8 @@
       "sha256": "7e414e223acb18b5d6f24858e5803fb7cfeeabc54f6f25e7b8e674e135c6b780"
     },
     "test/lifecycle-evidence.test.js": {
-      "bytes": 5376,
-      "sha256": "bc6878c015cce1f24c480272a1bc6a3db9fb28650f116274df4e117d9acbe6b4"
+      "bytes": 5914,
+      "sha256": "194fe2487bc0058b3fcd13c5337d3a9b78904ecfe40540c2872094664506b441"
     },
     "test/manifest.test.js": {
       "bytes": 2330,

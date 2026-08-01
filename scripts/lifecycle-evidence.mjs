@@ -20,7 +20,13 @@ const TOP_LEVEL_KEYS = Object.freeze([
 ]);
 
 const STEP_KEYS = Object.freeze({
-  fresh_profile: ["kind", "count", "workerGeneration"],
+  fresh_profile: [
+    "kind",
+    "count",
+    "restartCycle",
+    "runningStatus",
+    "activeTargetCount",
+  ],
   initial_action: ["kind", "count", "clickCount"],
   spa_rate_restore: [
     "kind",
@@ -42,21 +48,25 @@ const STEP_KEYS = Object.freeze({
     "count",
     "countDelta",
     "clickCounts",
-    "workerGeneration",
+    "restartCycle",
   ],
   worker_stopped: [
     "kind",
     "count",
-    "activeWorkerCount",
-    "workerGeneration",
+    "restartCycle",
+    "runningStatuses",
+    "activeTargetCounts",
   ],
   worker_woken: [
     "kind",
     "count",
     "clickCount",
-    "previousWorkerGeneration",
-    "workerGeneration",
-    "targetChanged",
+    "previousRestartCycle",
+    "restartCycle",
+    "runningStatuses",
+    "activeTargetCounts",
+    "sameRegistration",
+    "sameVersion",
   ],
   final_popup: ["kind", "count"],
 });
@@ -103,6 +113,13 @@ function requireTrue(value, location) {
     fail(`${location} must be true`);
   }
   return true;
+}
+
+function requireExactArray(value, expected, location) {
+  if (!Array.isArray(value) || JSON.stringify(value) !== JSON.stringify(expected)) {
+    fail(`${location} must be ${JSON.stringify(expected)}`);
+  }
+  return [...value];
 }
 
 function normalizedStep(value, expectedKind, index) {
@@ -163,10 +180,14 @@ export function normalizeLifecycleEvidence(value) {
   ] = steps;
 
   requireExactInteger(fresh.count, 0, "fresh_profile.count");
+  requireExactInteger(fresh.restartCycle, 0, "fresh_profile.restartCycle");
+  if (fresh.runningStatus !== "running") {
+    fail("fresh_profile.runningStatus must be running");
+  }
   requireExactInteger(
-    fresh.workerGeneration,
+    fresh.activeTargetCount,
     1,
-    "fresh_profile.workerGeneration",
+    "fresh_profile.activeTargetCount",
   );
 
   requireExactInteger(initial.clickCount, 1, "initial_action.clickCount");
@@ -208,9 +229,9 @@ export function normalizeLifecycleEvidence(value) {
     fail("two_tab_barrier.clickCounts must be [1,1]");
   }
   requireExactInteger(
-    multiTab.workerGeneration,
-    1,
-    "two_tab_barrier.workerGeneration",
+    multiTab.restartCycle,
+    0,
+    "two_tab_barrier.restartCycle",
   );
   requireExactInteger(
     multiTab.count,
@@ -219,30 +240,42 @@ export function normalizeLifecycleEvidence(value) {
   );
   multiTab.clickCounts = [...multiTab.clickCounts];
 
-  requireExactInteger(
-    stopped.activeWorkerCount,
-    0,
-    "worker_stopped.activeWorkerCount",
+  requireExactInteger(stopped.restartCycle, 0, "worker_stopped.restartCycle");
+  stopped.runningStatuses = requireExactArray(
+    stopped.runningStatuses,
+    ["running", "stopped"],
+    "worker_stopped.runningStatuses",
   );
-  requireExactInteger(
-    stopped.workerGeneration,
-    1,
-    "worker_stopped.workerGeneration",
+  stopped.activeTargetCounts = requireExactArray(
+    stopped.activeTargetCounts,
+    [1, 0],
+    "worker_stopped.activeTargetCounts",
   );
   requireExactInteger(stopped.count, multiTab.count, "worker_stopped.count");
 
   requireExactInteger(woken.clickCount, 1, "worker_woken.clickCount");
   requireExactInteger(
-    woken.previousWorkerGeneration,
-    stopped.workerGeneration,
-    "worker_woken.previousWorkerGeneration",
+    woken.previousRestartCycle,
+    stopped.restartCycle,
+    "worker_woken.previousRestartCycle",
   );
   requireExactInteger(
-    woken.workerGeneration,
-    stopped.workerGeneration + 1,
-    "worker_woken.workerGeneration",
+    woken.restartCycle,
+    stopped.restartCycle + 1,
+    "worker_woken.restartCycle",
   );
-  requireTrue(woken.targetChanged, "worker_woken.targetChanged");
+  woken.runningStatuses = requireExactArray(
+    woken.runningStatuses,
+    ["running", "stopped", "running"],
+    "worker_woken.runningStatuses",
+  );
+  woken.activeTargetCounts = requireExactArray(
+    woken.activeTargetCounts,
+    [1, 0, 1],
+    "worker_woken.activeTargetCounts",
+  );
+  requireTrue(woken.sameRegistration, "worker_woken.sameRegistration");
+  requireTrue(woken.sameVersion, "worker_woken.sameVersion");
   requireExactInteger(
     woken.count,
     stopped.count + woken.clickCount,
@@ -274,13 +307,13 @@ export function summarizeLifecycleEvidence(value) {
   return [
     "YouTube Ad Skipper — offline MV3 lifecycle replay",
     "",
-    `fresh profile                 count=${byKind.fresh_profile.count} worker=g${byKind.fresh_profile.workerGeneration}`,
+    `fresh profile                 count=${byKind.fresh_profile.count} worker=running targets=1`,
     `initial fixture              count=${byKind.initial_action.count} clicks=${byKind.initial_action.clickCount}`,
     `same-document SPA + restore  count=${byKind.spa_rate_restore.count} rate=${byKind.spa_rate_restore.acceleratedRate}x→${byKind.spa_rate_restore.rateAtClick}x`,
     `ad-pod source rotation       count=${byKind.ad_pod_rotation.count} clicks=${byKind.ad_pod_rotation.clickCount}`,
     `two-tab barrier              count=${byKind.two_tab_barrier.count} delta=${byKind.two_tab_barrier.countDelta}`,
-    `worker stopped               count=${byKind.worker_stopped.count} active=${byKind.worker_stopped.activeWorkerCount}`,
-    `worker woken                 count=${byKind.worker_woken.count} worker=g${byKind.worker_woken.workerGeneration}`,
+    `worker stopped               count=${byKind.worker_stopped.count} status=stopped targets=0`,
+    `worker woken                 count=${byKind.worker_woken.count} cycle=${byKind.worker_woken.restartCycle} targets=1`,
     `final popup                  count=${byKind.final_popup.count}`,
     "",
     "Observed offline invariants only; live YouTube selector compatibility is not claimed.",

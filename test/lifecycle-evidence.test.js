@@ -12,7 +12,13 @@ function validEvidence() {
     fixtureFulfillments: 4,
     unexpectedHttpRequests: 0,
     steps: [
-      { kind: "fresh_profile", count: 0, workerGeneration: 1 },
+      {
+        kind: "fresh_profile",
+        count: 0,
+        restartCycle: 0,
+        runningStatus: "running",
+        activeTargetCount: 1,
+      },
       { kind: "initial_action", count: 1, clickCount: 1 },
       {
         kind: "spa_rate_restore",
@@ -34,21 +40,25 @@ function validEvidence() {
         count: 5,
         countDelta: 2,
         clickCounts: [1, 1],
-        workerGeneration: 1,
+        restartCycle: 0,
       },
       {
         kind: "worker_stopped",
         count: 5,
-        activeWorkerCount: 0,
-        workerGeneration: 1,
+        restartCycle: 0,
+        runningStatuses: ["running", "stopped"],
+        activeTargetCounts: [1, 0],
       },
       {
         kind: "worker_woken",
         count: 6,
         clickCount: 1,
-        previousWorkerGeneration: 1,
-        workerGeneration: 2,
-        targetChanged: true,
+        previousRestartCycle: 0,
+        restartCycle: 1,
+        runningStatuses: ["running", "stopped", "running"],
+        activeTargetCounts: [1, 0, 1],
+        sameRegistration: true,
+        sameVersion: true,
       },
       { kind: "final_popup", count: 6 },
     ],
@@ -95,13 +105,13 @@ test("canonical lifecycle bytes and summary are stable", async () => {
     [
       "YouTube Ad Skipper — offline MV3 lifecycle replay",
       "",
-      "fresh profile                 count=0 worker=g1",
+      "fresh profile                 count=0 worker=running targets=1",
       "initial fixture              count=1 clicks=1",
       "same-document SPA + restore  count=2 rate=2x→1x",
       "ad-pod source rotation       count=3 clicks=1",
       "two-tab barrier              count=5 delta=2",
-      "worker stopped               count=5 active=0",
-      "worker woken                 count=6 worker=g2",
+      "worker stopped               count=5 status=stopped targets=0",
+      "worker woken                 count=6 cycle=1 targets=1",
       "final popup                  count=6",
       "",
       "Observed offline invariants only; live YouTube selector compatibility is not claimed.",
@@ -165,11 +175,18 @@ test("lifecycle evidence rejects nondeterministic and unbounded surface", async 
 test("lifecycle evidence requires the worker and rate boundaries", async () => {
   const { normalizeLifecycleEvidence } = await lifecycle;
 
-  const sameTarget = validEvidence();
-  sameTarget.steps[6].targetChanged = false;
+  const missingRestart = validEvidence();
+  missingRestart.steps[6].runningStatuses = ["running", "running"];
   assert.throws(
-    () => normalizeLifecycleEvidence(sameTarget),
-    /worker_woken\.targetChanged must be true/,
+    () => normalizeLifecycleEvidence(missingRestart),
+    /worker_woken\.runningStatuses must be/,
+  );
+
+  const changedVersion = validEvidence();
+  changedVersion.steps[6].sameVersion = false;
+  assert.throws(
+    () => normalizeLifecycleEvidence(changedVersion),
+    /worker_woken\.sameVersion must be true/,
   );
 
   const wrongRate = validEvidence();
