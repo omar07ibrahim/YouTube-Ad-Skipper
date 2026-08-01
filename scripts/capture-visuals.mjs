@@ -361,7 +361,7 @@ function buildArchitectureSvg() {
       y: 260,
       width: 210,
       title: "Trusted storage",
-      detail: "one local integer",
+      detail: "count + replay window",
       accent: "#14b8a6",
     },
     {

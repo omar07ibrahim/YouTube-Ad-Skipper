@@ -3,20 +3,20 @@
   "coverage": [
     {
       "file": "background.js",
-      "lines": 96.13,
-      "branches": 92.86,
-      "functions": 87.5
+      "lines": 96.92,
+      "branches": 96.26,
+      "functions": 91.89
     },
     {
       "file": "content.js",
-      "lines": 94.13,
-      "branches": 85.07,
-      "functions": 90.91
+      "lines": 94.33,
+      "branches": 87.19,
+      "functions": 95.92
     },
     {
       "file": "popup.js",
-      "lines": 94.44,
-      "branches": 86.36,
+      "lines": 92.57,
+      "branches": 86,
       "functions": 100
     }
   ]

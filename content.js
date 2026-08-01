@@ -23,7 +23,14 @@
   const ACCELERATION_GRACE_MS = 6_000;
   const CONSERVATIVE_REMAINDER_SECONDS = 8;
   const MAX_EXTENSION_RATE = 2;
+  const MAX_PENDING_REPORTS = 128;
+  const MAX_DROPPED_REPORT_COUNT = Number.MAX_SAFE_INTEGER;
+  const REPORT_RESPONSE_TIMEOUT_MS = 5_000;
+  const REPORT_RETRY_BASE_MS = 1_000;
+  const REPORT_RETRY_MAX_MS = 30_000;
   const RATE_EPSILON = 1e-6;
+  const ACTION_ID_PATTERN =
+    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/;
 
   function isFinitePositive(value) {
     return Number.isFinite(value) && value > 0;
@@ -34,6 +41,30 @@
       Number.isFinite(left) &&
       Number.isFinite(right) &&
       Math.abs(left - right) <= RATE_EPSILON
+    );
+  }
+
+  function isValidActionId(value) {
+    return typeof value === "string" && ACTION_ID_PATTERN.test(value);
+  }
+
+  function isValidSkipAcknowledgement(value, actionId) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      return false;
+    }
+
+    const keys = Object.keys(value).sort();
+    return (
+      keys.length === 4 &&
+      keys[0] === "actionId" &&
+      keys[1] === "count" &&
+      keys[2] === "duplicate" &&
+      keys[3] === "ok" &&
+      value.ok === true &&
+      value.actionId === actionId &&
+      Number.isSafeInteger(value.count) &&
+      value.count >= 0 &&
+      typeof value.duplicate === "boolean"
     );
   }
 
@@ -117,6 +148,7 @@
   }
 
   function createController({
+    createActionId = () => globalThis.crypto.randomUUID(),
     documentApi,
     runtimeApi,
     now = () => Date.now(),
@@ -129,6 +161,73 @@
     let episode = null;
     let normalVideo = null;
     let normalRate = 1;
+    let suspendedAt = null;
+    let disposed = false;
+    let droppedReportCount = 0;
+    const pendingReports = new Map();
+
+    function timestamp() {
+      const value = now();
+      return Number.isFinite(value) ? value : 0;
+    }
+
+    function retryDelay(failureCount) {
+      const exponent = Math.min(Math.max(failureCount - 1, 0), 30);
+      return Math.min(
+        REPORT_RETRY_BASE_MS * 2 ** exponent,
+        REPORT_RETRY_MAX_MS,
+      );
+    }
+
+    function clearReportTimeout(report) {
+      if (report.timeoutId === null) {
+        return;
+      }
+      const timeoutId = report.timeoutId;
+      report.timeoutId = null;
+      try {
+        clearTimeoutApi(timeoutId);
+      } catch {
+        // The attempt generation also makes an uncleared callback stale.
+      }
+    }
+
+    function isCurrentReportAttempt(report, generation) {
+      return (
+        pendingReports.get(report.actionId) === report &&
+        report.generation === generation &&
+        report.inFlight
+      );
+    }
+
+    function recordReportFailure(report, generation) {
+      if (!isCurrentReportAttempt(report, generation)) {
+        return;
+      }
+      clearReportTimeout(report);
+      report.inFlight = false;
+      report.failureCount = Math.min(
+        report.failureCount + 1,
+        Number.MAX_SAFE_INTEGER,
+      );
+      report.nextAttemptAt = timestamp() + retryDelay(report.failureCount);
+    }
+
+    function invalidatePendingReports(retryAt) {
+      for (const report of pendingReports.values()) {
+        clearReportTimeout(report);
+        report.inFlight = false;
+        report.generation += 1;
+        report.nextAttemptAt = retryAt;
+      }
+    }
+
+    function recordDroppedReport() {
+      droppedReportCount = Math.min(
+        droppedReportCount + 1,
+        MAX_DROPPED_REPORT_COUNT,
+      );
+    }
 
     function readRate(video) {
       try {
@@ -214,7 +313,7 @@
         restoreRate: isFinitePositive(capturedRate) ? capturedRate : 1,
         appliedRate: null,
         userOverride: false,
-        startedAt: now(),
+        startedAt: timestamp(),
         sourceKey: sourceKey(video),
         lastCurrentTime: currentTime(video),
         skipAttempted: false,
@@ -262,19 +361,83 @@
       );
     }
 
-    function sendSkipAction() {
+    function sendPendingReport(report) {
+      if (
+        report.inFlight ||
+        pendingReports.get(report.actionId) !== report ||
+        timestamp() < report.nextAttemptAt
+      ) {
+        return;
+      }
+
+      report.inFlight = true;
+      report.generation += 1;
+      const generation = report.generation;
       try {
-        const result = runtimeApi.sendMessage({ type: MESSAGE_TYPE });
-        if (result && typeof result.catch === "function") {
-          result.catch(() => undefined);
-        }
+        report.timeoutId = setTimeoutApi(() => {
+          if (!isCurrentReportAttempt(report, generation)) {
+            return;
+          }
+          report.timeoutId = null;
+          recordReportFailure(report, generation);
+        }, REPORT_RESPONSE_TIMEOUT_MS);
       } catch {
-        // A sleeping/reloading service worker must not stop page observation.
+        recordReportFailure(report, generation);
+        return;
+      }
+
+      let result;
+      try {
+        result = runtimeApi.sendMessage({
+          type: MESSAGE_TYPE,
+          actionId: report.actionId,
+        });
+      } catch {
+        recordReportFailure(report, generation);
+        return;
+      }
+
+      Promise.resolve(result).then(
+        (response) => {
+          if (!isCurrentReportAttempt(report, generation)) {
+            return;
+          }
+          clearReportTimeout(report);
+          if (isValidSkipAcknowledgement(response, report.actionId)) {
+            report.inFlight = false;
+            pendingReports.delete(report.actionId);
+            return;
+          }
+          recordReportFailure(report, generation);
+        },
+        () => recordReportFailure(report, generation),
+      );
+    }
+
+    function retryPendingReports() {
+      for (const report of pendingReports.values()) {
+        sendPendingReport(report);
+      }
+    }
+
+    function nextActionId() {
+      try {
+        const actionId = createActionId();
+        if (!isValidActionId(actionId) || pendingReports.has(actionId)) {
+          return null;
+        }
+        return actionId;
+      } catch {
+        return null;
       }
     }
 
     function requestSkip(button) {
-      if (!episode || episode.skipAttempted || !isEligibleSkipButton(button)) {
+      if (
+        !episode ||
+        episode.skipAttempted ||
+        !isEligibleSkipButton(button)
+      ) {
         return false;
       }
 
@@ -289,7 +452,27 @@
       }
 
       episode.skipAttempted = true;
-      sendSkipAction();
+      if (pendingReports.size >= MAX_PENDING_REPORTS) {
+        recordDroppedReport();
+        return true;
+      }
+
+      const actionId = nextActionId();
+      if (actionId === null) {
+        recordDroppedReport();
+        return true;
+      }
+
+      const report = {
+        actionId,
+        failureCount: 0,
+        generation: 0,
+        inFlight: false,
+        nextAttemptAt: timestamp(),
+        timeoutId: null,
+      };
+      pendingReports.set(actionId, report);
+      sendPendingReport(report);
       return true;
     }
 
@@ -311,7 +494,7 @@
         originalRate: episode.restoreRate,
         duration: video.duration,
         currentTime: video.currentTime,
-        adAgeMs: now() - episode.startedAt,
+        adAgeMs: timestamp() - episode.startedAt,
       });
 
       if (ratesEqual(targetRate, episode.restoreRate)) {
@@ -333,6 +516,10 @@
     }
 
     function evaluate() {
+      if (disposed) {
+        return;
+      }
+      retryPendingReports();
       const pageState = readPageState(documentApi);
 
       if (!pageState.adActive || !pageState.video) {
@@ -363,7 +550,7 @@
     }
 
     function scheduleNext() {
-      if (!running) {
+      if (!running || disposed) {
         return;
       }
       timerId = setTimeoutApi(tick, pollIntervalMs);
@@ -385,8 +572,15 @@
     }
 
     function start() {
-      if (running) {
+      if (running || disposed) {
         return false;
+      }
+      if (suspendedAt !== null) {
+        const hiddenDuration = Math.max(timestamp() - suspendedAt, 0);
+        if (episode) {
+          episode.startedAt += hiddenDuration;
+        }
+        suspendedAt = null;
       }
       running = true;
       tick();
@@ -394,7 +588,7 @@
     }
 
     function stop() {
-      if (!running && !episode) {
+      if (!running || disposed) {
         return false;
       }
       running = false;
@@ -402,13 +596,40 @@
         clearTimeoutApi(timerId);
         timerId = null;
       }
-      leaveEpisode();
+      suspendedAt = timestamp();
+      invalidatePendingReports(suspendedAt);
+      // A bfcache page resumes the same controller instance. Restore any rate
+      // we own, but retain the episode and its one-click decision across the
+      // pagehide/pageshow boundary.
+      restoreOwnedRate();
+      return true;
+    }
+
+    function dispose() {
+      if (disposed) {
+        return false;
+      }
+      if (running) {
+        stop();
+      } else {
+        invalidatePendingReports(timestamp());
+        restoreOwnedRate();
+      }
+      pendingReports.clear();
+      episode = null;
+      normalVideo = null;
+      normalRate = 1;
+      suspendedAt = null;
+      disposed = true;
       return true;
     }
 
     return {
+      dispose,
       evaluate,
       getState: () => ({
+        disposed,
+        droppedReportCount,
         episode: episode
           ? {
               appliedRate: episode.appliedRate,
@@ -417,6 +638,8 @@
               userOverride: episode.userOverride,
             }
           : null,
+        pendingReportCount: pendingReports.size,
+        reportingDegraded: droppedReportCount > 0,
         running,
       }),
       start,
@@ -430,6 +653,7 @@
     }
 
     const controller = createController({
+      createActionId: () => root.crypto.randomUUID(),
       documentApi: root.document,
       runtimeApi: root.chrome.runtime,
       now: () => root.Date.now(),
@@ -445,7 +669,7 @@
     const instance = {
       controller,
       dispose() {
-        controller.stop();
+        controller.dispose();
         root.removeEventListener("pagehide", onPageHide);
         root.removeEventListener("pageshow", onPageShow);
         if (root[INSTANCE_KEY] === instance) {
@@ -463,9 +687,14 @@
     ACCELERATION_GRACE_MS,
     CONSERVATIVE_REMAINDER_SECONDS,
     INSTANCE_KEY,
+    MAX_DROPPED_REPORT_COUNT,
     MAX_EXTENSION_RATE,
+    MAX_PENDING_REPORTS,
     MESSAGE_TYPE,
     POLL_INTERVAL_MS,
+    REPORT_RESPONSE_TIMEOUT_MS,
+    REPORT_RETRY_BASE_MS,
+    REPORT_RETRY_MAX_MS,
     SKIP_SELECTOR,
     bootstrap,
     choosePlaybackRate,

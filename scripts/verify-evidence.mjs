@@ -41,9 +41,9 @@ const EXPECTED_CONTRACT = {
     frameCount: 3,
     delaysMs: [1600, 1900, 2400],
     framePixelSha256: [
-      "6dc8b409c2dc8e32c313c6fd6ea052a94288ece8cc4939797437848e7e177407",
+      "f36c7cb2f0127aff0727eb9eadfcab03760c37135b8d7b0a0126d7993188de2d",
       "527abf3a27fc69a73327d49f483a4b21d3f26b18adeb6a57089526a66950ab48",
-      "1b66fcad5f997b757b097c23c45d52ab0977664dd72d30a5908b2c254508bf39",
+      "c6b8ea0c771011e2404d3e9a94deddaeee12d77a4901c61b57da1e27d4602e90",
     ],
   },
   staticInputs: [
@@ -78,6 +78,18 @@ const EXPECTED_CONTRACT = {
     "docs/evidence/policy-matrix.txt",
     "images/icon128.png",
   ],
+};
+const EXPECTED_CAPTURE_POLICY = {
+  network:
+    "The digest-pinned Docker capture required a loopback-only namespace with no IPv4 default route; one HTTPS fixture request was fulfilled locally by Playwright routing.",
+  popup:
+    "Real unpacked-extension popup observed at count 0, then count 1 after the real content script and service worker processed one offline DOM-contract fixture.",
+  workflowGif:
+    "Three annotated frames are composed from the actual fresh popup, handled offline fixture, and updated popup screenshots captured in the same Chromium session.",
+  policyMatrix:
+    "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
+  provenance:
+    "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator.",
 };
 
 async function sha256(filePath) {
@@ -122,6 +134,19 @@ async function resolveRegularFile(file) {
 
 async function verifyFiles(files, label) {
   for (const [file, expected] of Object.entries(files)) {
+    const descriptorKeys =
+      expected && typeof expected === "object"
+        ? Object.keys(expected).sort()
+        : [];
+    if (
+      JSON.stringify(descriptorKeys) !== JSON.stringify(["bytes", "sha256"]) ||
+      !Number.isSafeInteger(expected.bytes) ||
+      expected.bytes < 0 ||
+      typeof expected.sha256 !== "string" ||
+      !/^[0-9a-f]{64}$/.test(expected.sha256)
+    ) {
+      throw new Error(`${label} descriptor drift: ${file}`);
+    }
     const actual = await sha256(await resolveRegularFile(file));
     if (
       actual.bytes !== expected.bytes ||
@@ -424,6 +449,18 @@ async function main() {
   }
 
   const manifest = JSON.parse(await readFile(MANIFEST_PATH, "utf8"));
+  assert.deepStrictEqual(
+    Object.keys(manifest).sort(),
+    [
+      "browserEvidence",
+      "capturePolicy",
+      "inputs",
+      "outputs",
+      "schemaVersion",
+      "toolchain",
+    ],
+    "visual manifest surface drift",
+  );
   if (manifest.schemaVersion !== 1) {
     throw new Error("unsupported visual evidence schema");
   }
@@ -456,6 +493,11 @@ async function main() {
     "browser evidence contract drift",
   );
   assert.deepStrictEqual(
+    manifest.capturePolicy,
+    EXPECTED_CAPTURE_POLICY,
+    "visual capture policy drift",
+  );
+  assert.deepStrictEqual(
     manifest.toolchain,
     {
       node: EXPECTED_CONTRACT.node,
@@ -463,14 +505,6 @@ async function main() {
     },
     "visual toolchain drift",
   );
-  if (
-    !manifest.capturePolicy?.provenance?.includes(
-      "not cryptographic attestation",
-    )
-  ) {
-    throw new Error("visual provenance limitation is missing");
-  }
-
   const packageJson = JSON.parse(
     await readFile(await resolveRegularFile("package.json"), "utf8"),
   );

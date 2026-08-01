@@ -68,7 +68,7 @@
           <rect x="832" y="260" width="7" height="104" rx="4"
                 fill="#14b8a6"/>
           <text x="856" y="304" class="title">Trusted storage</text>
-          <text x="856" y="332" class="detail">one local integer</text>
+          <text x="856" y="332" class="detail">count + replay window</text>
         </g>
         <g>
           <rect x="1096" y="176" width="174" height="104" rx="18"

@@ -19,11 +19,25 @@ machine:
 - a six-second grace period before any acceleration;
 - a `2×` extension-added ceiling, disabled for the last eight seconds;
 - skip-first ordering and playback-rate restoration;
-- serialized counter updates across simultaneous tabs;
+- retrying action reports with a bounded deduplication window across worker
+  wake-ups;
+- serialized counter updates from simultaneous tabs in each active worker;
 - exact sender checks and a single `storage` permission.
 
-The counter is deliberately named **skip actions**. It records successful calls
-to an available skip control; it is not proof that YouTube completed a skip.
+The counter is deliberately named **skip actions**. A live content context
+retries one random action ID until the worker acknowledges its local storage
+commit. The worker keeps the latest 256 IDs in the same versioned value as the
+count, suppresses retained replays, and reapplies the badge before acknowledging
+a duplicate. This repairs worker interruption windows around storage, badge,
+and response delivery without recording a URL, tab ID, video ID, or timestamp.
+
+This is bounded idempotency, not a transaction with the page. Destroying the
+content context after a successful DOM click but before its first report can
+still leave that click unrecorded; a retry delayed beyond 256 newer actions is
+outside the deduplication window. If 128 reports remain pending, or secure ID
+generation is unavailable, skipping stays active but newer clicks are omitted
+from the best-effort tally. The tally is not a count of unique ads and is not
+proof that YouTube completed a skip.
 
 ## Runtime workflow
 
@@ -104,9 +118,10 @@ npm run coverage
 ```
 
 The tests exercise rate ownership, short-ad boundaries, ad-pod transitions,
-retryable restoration, one-click-per-episode behavior, concurrent counter
-updates, sender validation, permission minimization, and every local manifest
-asset.
+retryable restoration, one-click-per-episode behavior, exact action
+acknowledgements, replay suppression, storage-to-badge recovery, concurrent
+counter updates, sender validation, permission minimization, and every local
+manifest asset.
 
 The checked-in visuals are regenerated with a digest-pinned official Playwright
 container:
@@ -141,9 +156,14 @@ controls, and decompression-boundary abuse.
 | --- | --- |
 | Site access | Static content script only on `https://www.youtube.com/*` |
 | Named permission | `storage` |
-| Stored value | One local integer: the skip-action count |
+| Stored value | One local object: count plus at most 256 random action IDs |
 | Remote code/assets | None |
 | Analytics or telemetry | None |
+
+Version 2 migrates the legacy integer by writing the versioned state first and
+removing the old key second. If removal is interrupted, both values can briefly
+coexist; the versioned state remains authoritative and the next successful
+worker operation retries cleanup.
 
 The popup has no donation widget, personal contact link, or remotely hosted
 image. Compatibility reports belong in
