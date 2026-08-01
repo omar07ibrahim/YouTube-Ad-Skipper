@@ -74,8 +74,8 @@
       "sha256": "37dc4267d67efdd58570670639345341ea07d7302591068a5d33ae145cabdc54"
     },
     "package.json": {
-      "bytes": 980,
-      "sha256": "41dd7d29ac55cae82c5f925671d7684a8530cc6cce120bd466c8c52bd1209f52"
+      "bytes": 1027,
+      "sha256": "2cdd77058923019f5c00fafe1ec81fe06ecbd6198827595e9cbc8893da2324c7"
     },
     "popup.css": {
       "bytes": 3617,
@@ -101,17 +101,21 @@
       "bytes": 9496,
       "sha256": "4c8b350f5115344a9c6928bb94e634c85b06251cf3650b7167424014bb80024d"
     },
+    "scripts/lifecycle-evidence.mjs": {
+      "bytes": 8131,
+      "sha256": "df9a697c4a0a7e8b4a6bd6d65ff92c1bb4df776b9b3c28c1fb076a3a300b8868"
+    },
     "scripts/promote-visuals.mjs": {
       "bytes": 5265,
       "sha256": "89d0dd8ffb31c29d95c92ba89620d2540d29bd17d73e6a387f31b6022d4b1799"
     },
     "scripts/verify-evidence.mjs": {
-      "bytes": 16072,
-      "sha256": "245d7b3efd88fd04d2fb3afe12e66afc465512097ea329512a0f08200f143f75"
+      "bytes": 16110,
+      "sha256": "2e8446e51fcd10a747f7cc114a49d9c055afde6e43c98112e42b52a395cb6385"
     },
     "scripts/visual-contract.json": {
-      "bytes": 1702,
-      "sha256": "093c9f1edd8fadcba134533f3ff9b7a91fd49eb81bfbe35dfd609dcb4f4dd28d"
+      "bytes": 1740,
+      "sha256": "2bf1c456a2273c73b4f4348b72d7ebf4705f826d1b275814f675a777a9409656"
     },
     "test/background.test.js": {
       "bytes": 6181,
@@ -124,6 +128,10 @@
     "test/gif-evidence.test.js": {
       "bytes": 2871,
       "sha256": "7e414e223acb18b5d6f24858e5803fb7cfeeabc54f6f25e7b8e674e135c6b780"
+    },
+    "test/lifecycle-evidence.test.js": {
+      "bytes": 5376,
+      "sha256": "bc6878c015cce1f24c480272a1bc6a3db9fb28650f116274df4e117d9acbe6b4"
     },
     "test/manifest.test.js": {
       "bytes": 2330,

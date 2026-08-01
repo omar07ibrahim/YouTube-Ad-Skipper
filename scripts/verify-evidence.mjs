@@ -62,6 +62,7 @@ const EXPECTED_CONTRACT = {
     "scripts/capture-visuals-docker.sh",
     "scripts/capture-visuals.mjs",
     "scripts/gif-evidence.mjs",
+    "scripts/lifecycle-evidence.mjs",
     "scripts/promote-visuals.mjs",
     "scripts/verify-evidence.mjs",
     "scripts/visual-contract.json",
