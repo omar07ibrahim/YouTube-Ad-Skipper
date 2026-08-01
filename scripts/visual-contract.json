@@ -27,6 +27,51 @@
       "c6b8ea0c771011e2404d3e9a94deddaeee12d77a4901c61b57da1e27d4602e90"
     ]
   },
+  "lifecycle": {
+    "receipt": {
+      "bytes": 1498,
+      "sha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+    },
+    "timeline": {
+      "width": 1440,
+      "height": 720
+    },
+    "matrix": {
+      "width": 1440,
+      "height": 960,
+      "decodedRgbaSha256": "d0685b89a337c7e956abf9b50023fd36718ff01e9dfc25e109133054e062ec67"
+    },
+    "workflowGif": {
+      "width": 960,
+      "height": 540,
+      "frameCount": 8,
+      "delaysMs": [
+        1800,
+        1800,
+        1800,
+        1800,
+        1800,
+        1800,
+        1800,
+        1800
+      ],
+      "framePixelSha256": [
+        "f01647748136c6f232b5a81d1d982dd2a085f7a184808f3f529ee6af0bec44a9",
+        "e8fc466fa196fa52892c319bca44cc5684cd0d90983749b974d9f737303e08df",
+        "a8da980f265afb7319f22189142158708e7c98eac218b9fcc155b1d514a631cf",
+        "ef364042fe90b3e849d717f72453c4ca97823ab631bc509a3a0ad1e6ee04dedc",
+        "26e36eeaa55d101b5ffdaba0d885cf8c77e03503af62ae19d108f20146b9cdb2",
+        "30e44e135a9e9cbc8a2d1969148fcdf118cdddd42056d7c4b4716494e95a64cf",
+        "6872dcdf4428d4ab5a022bdbe1a69fb5d9728c241b775159e0161d9c63153144",
+        "5e4332022e17f90c1902ff8d3733731b73c5b12ee83323735ef9cb9861e93e17"
+      ]
+    },
+    "popup": {
+      "width": 336,
+      "height": 564,
+      "decodedRgbaSha256": "c7675ac2d99d8b4ad3d1647e1c3da2c4d9bfbe33f769bafcccdd500ef1d0804d"
+    }
+  },
   "staticInputs": [
     "README.md",
     "background.js",
@@ -41,9 +86,12 @@
     "popup.html",
     "popup.js",
     "scripts/capture-visuals-docker.sh",
+    "scripts/capture-lifecycle.mjs",
     "scripts/capture-visuals.mjs",
     "scripts/gif-evidence.mjs",
     "scripts/lifecycle-evidence.mjs",
+    "scripts/lifecycle-fixture.mjs",
+    "scripts/lifecycle-render.mjs",
     "scripts/promote-visuals.mjs",
     "scripts/verify-evidence.mjs",
     "scripts/visual-contract.json"
@@ -51,11 +99,17 @@
   "outputs": [
     "docs/assets/architecture.svg",
     "docs/assets/coverage.svg",
+    "docs/assets/lifecycle-matrix.png",
+    "docs/assets/lifecycle-timeline.svg",
+    "docs/assets/lifecycle-workflow.gif",
     "docs/assets/offline-workflow.gif",
     "docs/assets/policy-matrix.png",
+    "docs/assets/popup-lifecycle-final.png",
     "docs/assets/popup-offline-fixture.png",
     "docs/assets/setup-flow.svg",
     "docs/evidence/coverage-summary.json",
+    "docs/evidence/lifecycle-evidence.json",
+    "docs/evidence/lifecycle-evidence.txt",
     "docs/evidence/policy-matrix.txt",
     "images/icon128.png"
   ]

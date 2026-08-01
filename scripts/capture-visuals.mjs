@@ -10,6 +10,8 @@ import { chromium } from "playwright";
 import gifenc from "gifenc";
 import pngjs from "pngjs";
 
+import { captureLifecycleEvidence } from "./capture-lifecycle.mjs";
+
 const require = createRequire(import.meta.url);
 const { choosePlaybackRate } = require("../content.js");
 const { GIFEncoder, applyPalette, quantize } = gifenc;
@@ -329,7 +331,7 @@ function buildArchitectureSvg() {
       y: 96,
       width: 228,
       title: "Content controller",
-      detail: "one declarative instance",
+      detail: "episode + retry outbox",
       accent: "#ef4444",
     },
     {
@@ -345,7 +347,7 @@ function buildArchitectureSvg() {
       y: 176,
       width: 210,
       title: "Message boundary",
-      detail: "exact sender + type",
+      detail: "UUID + exact ACK",
       accent: "#8b5cf6",
     },
     {
@@ -353,7 +355,7 @@ function buildArchitectureSvg() {
       y: 96,
       width: 210,
       title: "MV3 worker",
-      detail: "serialized updates",
+      detail: "serialized + idempotent",
       accent: "#3b82f6",
     },
     {
@@ -361,7 +363,7 @@ function buildArchitectureSvg() {
       y: 260,
       width: 210,
       title: "Trusted storage",
-      detail: "count + replay window",
+      detail: "count + latest 256 IDs",
       accent: "#14b8a6",
     },
     {
@@ -407,7 +409,7 @@ function buildArchitectureSvg() {
      viewBox="0 0 1312 456" role="img"
      aria-labelledby="title description">
   <title id="title">YouTube Ad Skipper runtime architecture</title>
-  <desc id="description">The YouTube player feeds one content controller and rate ownership state machine. Exact messages cross into a Manifest V3 worker, trusted local storage, and the popup badge.</desc>
+  <desc id="description">The YouTube player feeds one content controller with a bounded retry outbox and a rate ownership state machine. Exact UUID acknowledgements cross into a serialized, idempotent Manifest V3 worker, trusted local state, and the popup badge.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3"
             orient="auto" markerUnits="strokeWidth">
@@ -908,7 +910,7 @@ async function captureBrowserVisuals(policyTranscript) {
   }
 }
 
-async function buildEvidenceManifest(browserEvidence) {
+async function buildEvidenceManifest(browserEvidence, lifecycleEvidence) {
   const testInputs = (await readdir(path.join(ROOT, "test")))
     .filter((entry) => entry.endsWith(".test.js"))
     .sort()
@@ -939,7 +941,10 @@ async function buildEvidenceManifest(browserEvidence) {
         "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
       provenance:
         "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator.",
+      lifecycle:
+        "A second fresh unpacked-extension profile observed offline SPA, ad-pod, two-tab, quiescent worker stop, message-driven wake, storage, badge, and popup boundaries; categorical renderings bind to its canonical receipt.",
     },
+    lifecycleEvidence,
     inputs: await describeFiles(inputs),
     outputs: await describeFiles(outputs),
     toolchain: {
@@ -980,7 +985,17 @@ async function main() {
   );
 
   const browserEvidence = await captureBrowserVisuals(policyTranscript);
-  const manifest = await buildEvidenceManifest(browserEvidence);
+  const lifecycleEvidence = await captureLifecycleEvidence({
+    root: ROOT,
+    assetDir: ASSET_DIR,
+    evidenceDir: EVIDENCE_DIR,
+    artifactDir: ARTIFACT_DIR,
+    lifecycleContract: CONTRACT.lifecycle,
+  });
+  const manifest = await buildEvidenceManifest(
+    browserEvidence,
+    lifecycleEvidence,
+  );
   await writeFile(
     path.join(EVIDENCE_DIR, "visual-manifest.json"),
     `${JSON.stringify(manifest, null, 2)}\n`,

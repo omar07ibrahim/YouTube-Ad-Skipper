@@ -1,0 +1,14 @@
+YouTube Ad Skipper — offline MV3 lifecycle receipt
+Receipt SHA-256: b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229
+
+01  Fresh profile          count=0   worker running · targets 1
+02  Initial action         count=1   1 observed click
+03  Same-document SPA      count=2   same document · 2× → 1×
+04  Ad-pod rotation        count=3   same video · source changed
+05  Two-tab barrier        count=5   delta 2 · tab clicks [1, 1]
+06  Worker stopped         count=5   running → stopped · targets 1 → 0
+07  Worker woken           count=6   stopped → running · targets 0 → 1
+08  Final popup            count=6   popup count 6
+
+Classification: categorical observations; sequence positions are not elapsed-time measurements.
+Scope: offline fixture evidence; live YouTube acceptance is not claimed.

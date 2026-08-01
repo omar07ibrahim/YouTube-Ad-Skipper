@@ -312,7 +312,7 @@ export function summarizeLifecycleEvidence(value) {
     `same-document SPA + restore  count=${byKind.spa_rate_restore.count} rate=${byKind.spa_rate_restore.acceleratedRate}x→${byKind.spa_rate_restore.rateAtClick}x`,
     `ad-pod source rotation       count=${byKind.ad_pod_rotation.count} clicks=${byKind.ad_pod_rotation.clickCount}`,
     `two-tab barrier              count=${byKind.two_tab_barrier.count} delta=${byKind.two_tab_barrier.countDelta}`,
-    `worker stopped               count=${byKind.worker_stopped.count} status=stopped targets=0`,
+    `worker stopped               last-committed=${byKind.worker_stopped.count} status=stopped targets=0`,
     `worker woken                 count=${byKind.worker_woken.count} cycle=${byKind.worker_woken.restartCycle} targets=1`,
     `final popup                  count=${byKind.final_popup.count}`,
     "",

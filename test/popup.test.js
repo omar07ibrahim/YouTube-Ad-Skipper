@@ -284,4 +284,18 @@ test("README removes token-like links and makes bounded claims", () => {
   assert.match(readme, /both values can briefly\s+coexist/i);
   assert.match(readme, /docs\/assets\/offline-workflow\.gif/);
   assert.match(readme, /not live\s+YouTube-ad acceptance/i);
+  for (const lifecycleArtifact of [
+    "docs/assets/lifecycle-workflow.gif",
+    "docs/assets/lifecycle-timeline.svg",
+    "docs/assets/lifecycle-matrix.png",
+    "docs/assets/popup-lifecycle-final.png",
+    "docs/evidence/lifecycle-evidence.json",
+    "docs/evidence/lifecycle-evidence.txt",
+  ]) {
+    assert.match(readme, new RegExp(lifecycleArtifact.replaceAll(".", "\\.")));
+  }
+  assert.match(readme, /quiescent count of `5`/i);
+  assert.match(readme, /`1\.8 s` holds are for\s+readability, not measured/i);
+  assert.match(readme, /does not\s+prove crash atomicity/i);
+  assert.match(readme, /co-captured evidence, not a rendered\s+receipt panel/i);
 });

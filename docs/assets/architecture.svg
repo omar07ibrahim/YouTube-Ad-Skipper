@@ -3,7 +3,7 @@
      viewBox="0 0 1312 456" role="img"
      aria-labelledby="title description">
   <title id="title">YouTube Ad Skipper runtime architecture</title>
-  <desc id="description">The YouTube player feeds one content controller and rate ownership state machine. Exact messages cross into a Manifest V3 worker, trusted local storage, and the popup badge.</desc>
+  <desc id="description">The YouTube player feeds one content controller with a bounded retry outbox and a rate ownership state machine. Exact UUID acknowledgements cross into a serialized, idempotent Manifest V3 worker, trusted local state, and the popup badge.</desc>
   <defs>
     <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="3"
             orient="auto" markerUnits="strokeWidth">
@@ -36,7 +36,7 @@
           <rect x="286" y="96" width="7" height="104" rx="4"
                 fill="#ef4444"/>
           <text x="310" y="140" class="title">Content controller</text>
-          <text x="310" y="168" class="detail">one declarative instance</text>
+          <text x="310" y="168" class="detail">episode + retry outbox</text>
         </g>
         <g>
           <rect x="286" y="260" width="228" height="104" rx="18"
@@ -52,7 +52,7 @@
           <rect x="568" y="176" width="7" height="104" rx="4"
                 fill="#8b5cf6"/>
           <text x="592" y="220" class="title">Message boundary</text>
-          <text x="592" y="248" class="detail">exact sender + type</text>
+          <text x="592" y="248" class="detail">UUID + exact ACK</text>
         </g>
         <g>
           <rect x="832" y="96" width="210" height="104" rx="18"
@@ -60,7 +60,7 @@
           <rect x="832" y="96" width="7" height="104" rx="4"
                 fill="#3b82f6"/>
           <text x="856" y="140" class="title">MV3 worker</text>
-          <text x="856" y="168" class="detail">serialized updates</text>
+          <text x="856" y="168" class="detail">serialized + idempotent</text>
         </g>
         <g>
           <rect x="832" y="260" width="210" height="104" rx="18"
@@ -68,7 +68,7 @@
           <rect x="832" y="260" width="7" height="104" rx="4"
                 fill="#14b8a6"/>
           <text x="856" y="304" class="title">Trusted storage</text>
-          <text x="856" y="332" class="detail">count + replay window</text>
+          <text x="856" y="332" class="detail">count + latest 256 IDs</text>
         </g>
         <g>
           <rect x="1096" y="176" width="174" height="104" rx="18"

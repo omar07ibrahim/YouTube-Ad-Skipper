@@ -49,6 +49,46 @@ setter failures have explicit recovery paths.
 
 ## Reproducible visual evidence
 
+### Offline MV3 lifecycle replay
+
+<p align="center">
+  <img src="docs/assets/lifecycle-workflow.gif" width="720" alt="Eight-frame categorical replay of the offline Manifest V3 lifecycle from a fresh profile through SPA and ad-pod actions, a stopped worker, message-driven wake-up, and a final count of six">
+</p>
+
+This replay comes from one real unpacked-extension run in pinned Chromium 140.
+Four exact HTTPS fixture documents were fulfilled locally and every other
+HTTP(S) request was aborted. The production content script observed native
+generated WAV media, a same-document SPA transition, a new ad-pod source on the
+same video element, and a two-tab release. At a quiescent count of `5`, the
+capture observed the worker move from running to stopped and its active target
+count move from `1` to `0`; one gated content-script action then woke the same
+registration/version and converged storage, badge, and popup at `6`.
+
+The frames are receipt-derived categorical views. Their `1.8 s` holds are for
+readability, not measured event durations. This single offline replay does not
+prove crash atomicity or current live YouTube behavior.
+
+![Two-row timeline of eight receipt-bound offline MV3 lifecycle observations](docs/assets/lifecycle-timeline.svg)
+
+![Receipt-bound matrix showing counter, worker, target, SPA, ad-pod, and two-tab observations](docs/assets/lifecycle-matrix.png)
+
+The exact observations are available as a
+[canonical JSON receipt](docs/evidence/lifecycle-evidence.json) and
+[plain-text transcript](docs/evidence/lifecycle-evidence.txt). Neither contains
+action UUIDs, extension/CDP identifiers, Blob URLs, timestamps, or host paths;
+every rendering displays and verifies the canonical receipt SHA-256.
+
+#### Real popup after worker wake-up
+
+<p align="center">
+  <img src="docs/assets/popup-lifecycle-final.png" width="336" alt="Actual unpacked YouTube Ad Skipper popup showing six durable skip actions after the offline service-worker wake-up">
+</p>
+
+This is the actual packaged popup from the same fresh-profile replay, captured
+after the content message woke the stopped worker and all three observable
+counter channels agreed on `6`. It is co-captured evidence, not a rendered
+receipt panel.
+
 ### Offline extension workflow
 
 <p align="center">
@@ -120,8 +160,9 @@ npm run coverage
 The tests exercise rate ownership, short-ad boundaries, ad-pod transitions,
 retryable restoration, one-click-per-episode behavior, exact action
 acknowledgements, replay suppression, storage-to-badge recovery, concurrent
-counter updates, sender validation, permission minimization, and every local
-manifest asset.
+counter updates, page lifecycle, fixture phase guards, canonical lifecycle
+normalization, receipt-bound renderers, sender validation, permission
+minimization, and every local manifest asset.
 
 The checked-in visuals are regenerated with a digest-pinned official Playwright
 container:
@@ -141,8 +182,11 @@ scratch data is removed.
 
 The manifest and bound scripts form a reproducibility and drift contract. They
 record the exact image digest, tool versions, observed network namespace,
-fixture fulfillment, inputs, and outputs. This is useful provenance evidence,
-not cryptographic attestation of the machine or operator.
+fixture fulfillment, inputs, and outputs. Lifecycle transcript and timeline
+bytes are rebuilt from the canonical receipt; matrix and GIF pixels are decoded
+and hash-checked; the final popup is separately co-bound to the receipt. This is
+useful provenance evidence, not cryptographic attestation of the machine or
+operator.
 
 GIF verification does not stop at the file hash or animation envelope. The
 independent decoder bounds input and decompressed pixels, requires complete LZW

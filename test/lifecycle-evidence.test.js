@@ -110,7 +110,7 @@ test("canonical lifecycle bytes and summary are stable", async () => {
       "same-document SPA + restore  count=2 rate=2x→1x",
       "ad-pod source rotation       count=3 clicks=1",
       "two-tab barrier              count=5 delta=2",
-      "worker stopped               count=5 status=stopped targets=0",
+      "worker stopped               last-committed=5 status=stopped targets=0",
       "worker woken                 count=6 cycle=1 targets=1",
       "final popup                  count=6",
       "",

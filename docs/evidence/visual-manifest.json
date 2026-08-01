@@ -38,12 +38,98 @@
     "popup": "Real unpacked-extension popup observed at count 0, then count 1 after the real content script and service worker processed one offline DOM-contract fixture.",
     "workflowGif": "Three annotated frames are composed from the actual fresh popup, handled offline fixture, and updated popup screenshots captured in the same Chromium session.",
     "policyMatrix": "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
-    "provenance": "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator."
+    "provenance": "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator.",
+    "lifecycle": "A second fresh unpacked-extension profile observed offline SPA, ad-pod, two-tab, quiescent worker stop, message-driven wake, storage, badge, and popup boundaries; categorical renderings bind to its canonical receipt."
+  },
+  "lifecycleEvidence": {
+    "schemaVersion": 1,
+    "scenario": "offline-mv3-lifecycle-v1",
+    "receipt": {
+      "path": "docs/evidence/lifecycle-evidence.json",
+      "bytes": 1498,
+      "sha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+    },
+    "stepKinds": [
+      "fresh_profile",
+      "initial_action",
+      "spa_rate_restore",
+      "ad_pod_rotation",
+      "two_tab_barrier",
+      "worker_stopped",
+      "worker_woken",
+      "final_popup"
+    ],
+    "observationCount": 8,
+    "initialCount": 0,
+    "finalCount": 6,
+    "fixtureFulfillments": 4,
+    "unexpectedHttpRequests": 0,
+    "renderedArtifacts": {
+      "docs/evidence/lifecycle-evidence.txt": {
+        "kind": "plainTranscript",
+        "sourceReceiptSha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+      },
+      "docs/assets/lifecycle-timeline.svg": {
+        "kind": "categoricalTimeline",
+        "width": 1440,
+        "height": 720,
+        "sourceReceiptSha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+      },
+      "docs/assets/lifecycle-matrix.png": {
+        "kind": "categoricalMatrix",
+        "width": 1440,
+        "height": 960,
+        "decodedRgbaSha256": "d0685b89a337c7e956abf9b50023fd36718ff01e9dfc25e109133054e062ec67",
+        "sourceReceiptSha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+      },
+      "docs/assets/lifecycle-workflow.gif": {
+        "kind": "categoricalReplay",
+        "delaysMs": [
+          1800,
+          1800,
+          1800,
+          1800,
+          1800,
+          1800,
+          1800,
+          1800
+        ],
+        "frameCount": 8,
+        "framePixelSha256": [
+          "f01647748136c6f232b5a81d1d982dd2a085f7a184808f3f529ee6af0bec44a9",
+          "e8fc466fa196fa52892c319bca44cc5684cd0d90983749b974d9f737303e08df",
+          "a8da980f265afb7319f22189142158708e7c98eac218b9fcc155b1d514a631cf",
+          "ef364042fe90b3e849d717f72453c4ca97823ab631bc509a3a0ad1e6ee04dedc",
+          "26e36eeaa55d101b5ffdaba0d885cf8c77e03503af62ae19d108f20146b9cdb2",
+          "30e44e135a9e9cbc8a2d1969148fcdf118cdddd42056d7c4b4716494e95a64cf",
+          "6872dcdf4428d4ab5a022bdbe1a69fb5d9728c241b775159e0161d9c63153144",
+          "5e4332022e17f90c1902ff8d3733731b73c5b12ee83323735ef9cb9861e93e17"
+        ],
+        "height": 540,
+        "width": 960,
+        "sourceReceiptSha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+      }
+    },
+    "coCapturedArtifacts": {
+      "docs/assets/popup-lifecycle-final.png": {
+        "kind": "realExtensionPopupBody",
+        "width": 336,
+        "height": 564,
+        "observedText": "6",
+        "decodedRgbaSha256": "c7675ac2d99d8b4ad3d1647e1c3da2c4d9bfbe33f769bafcccdd500ef1d0804d",
+        "coCapturedWithReceiptSha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+      }
+    },
+    "scope": {
+      "frameTimingRepresentsElapsedTime": false,
+      "workerStopBoundary": "quiescent",
+      "liveYouTubeAcceptance": false
+    }
   },
   "inputs": {
     "README.md": {
-      "bytes": 8331,
-      "sha256": "38158a377c475d4c126fed0780db3267350639a82354817e32a196c10944e21c"
+      "bytes": 10833,
+      "sha256": "2af1b8e08678803df730cc773ecceae6c031d256e9f8a986195a0d83d4adc293"
     },
     "background.js": {
       "bytes": 9082,
@@ -74,8 +160,8 @@
       "sha256": "37dc4267d67efdd58570670639345341ea07d7302591068a5d33ae145cabdc54"
     },
     "package.json": {
-      "bytes": 1027,
-      "sha256": "2cdd77058923019f5c00fafe1ec81fe06ecbd6198827595e9cbc8893da2324c7"
+      "bytes": 1164,
+      "sha256": "c0db2eb1e9d2acf839a1298d2c81bfb040905d059e2c8f7db355bbe02cd1b51d"
     },
     "popup.css": {
       "bytes": 3617,
@@ -89,33 +175,45 @@
       "bytes": 4378,
       "sha256": "65593d4a814f9fffca4405a74b9ad079dad1eb27d1a81d151d54077b0fc1c65b"
     },
+    "scripts/capture-lifecycle.mjs": {
+      "bytes": 25408,
+      "sha256": "bf185458638fa502605d952ec9ef1048ef4451170c280d887f602a82b29124f6"
+    },
     "scripts/capture-visuals-docker.sh": {
       "bytes": 2944,
       "sha256": "12b63f622d733167d30fd44a25fee9955162fa078d7a1c054ebe72f63e192ceb"
     },
     "scripts/capture-visuals.mjs": {
-      "bytes": 31756,
-      "sha256": "fbca21942cb03730b6b48baa77775d9bc290d36a377473c45049589bfcc195b4"
+      "bytes": 32422,
+      "sha256": "0b9b6326b6a4b1b6d5805bbdac198896ea571c5f1ecd90314cf364d31605f591"
     },
     "scripts/gif-evidence.mjs": {
       "bytes": 9496,
       "sha256": "4c8b350f5115344a9c6928bb94e634c85b06251cf3650b7167424014bb80024d"
     },
     "scripts/lifecycle-evidence.mjs": {
-      "bytes": 9117,
-      "sha256": "627af718c4ca9aeac941ed8d7dc5f649f327d62ab248cc8ae513c1d36050e827"
+      "bytes": 9126,
+      "sha256": "200a304c1b050ddba43d151905f537d131014d76b296a544fa434c7b0f769c10"
+    },
+    "scripts/lifecycle-fixture.mjs": {
+      "bytes": 13512,
+      "sha256": "4fc6f08094dbfaa4f55c6d06f98411920ec260dab0a2e6cfcc39ac0e26522a9c"
+    },
+    "scripts/lifecycle-render.mjs": {
+      "bytes": 19151,
+      "sha256": "a117d865310655d7103216d9b368b9c76b3715fba0472331e492036ac0ea1050"
     },
     "scripts/promote-visuals.mjs": {
       "bytes": 5265,
       "sha256": "89d0dd8ffb31c29d95c92ba89620d2540d29bd17d73e6a387f31b6022d4b1799"
     },
     "scripts/verify-evidence.mjs": {
-      "bytes": 17614,
-      "sha256": "9b25decc44140b32f4c306ad5fcc248aa179bdad33c05902c821a51a7fccba6b"
+      "bytes": 25683,
+      "sha256": "2918e8a9f80d503b9ea45b0daaec1cb1a5090e34a02c66d6e4c8c09af8ee426d"
     },
     "scripts/visual-contract.json": {
-      "bytes": 1740,
-      "sha256": "ea6ce544daae20409fa47e2313d6524a3371733e96a44749e26f44cc6f321f50"
+      "bytes": 3514,
+      "sha256": "5a546434246d4e42dcb1d506ec413dde031a5a9171f72e6189fc95586923f90c"
     },
     "test/background.test.js": {
       "bytes": 19317,
@@ -130,26 +228,46 @@
       "sha256": "7e414e223acb18b5d6f24858e5803fb7cfeeabc54f6f25e7b8e674e135c6b780"
     },
     "test/lifecycle-evidence.test.js": {
-      "bytes": 5914,
-      "sha256": "194fe2487bc0058b3fcd13c5337d3a9b78904ecfe40540c2872094664506b441"
+      "bytes": 5923,
+      "sha256": "5645731cd3604dc93ec3d2367e3f2e7c4518d71e383da5c77d6f9507709d7dca"
+    },
+    "test/lifecycle-fixture.test.js": {
+      "bytes": 12874,
+      "sha256": "26a0cb349ea000df0ea453739efded6c228926f0ca6a6860a7dbd1a7031df0bc"
+    },
+    "test/lifecycle-render.test.js": {
+      "bytes": 10675,
+      "sha256": "5aafce233187e890165cd266967675448703bc34966bf385451b4cd23c2d3bab"
     },
     "test/manifest.test.js": {
       "bytes": 2330,
       "sha256": "245fb8f25f4907c2a3b1d0c2d26696e58094f343de9f933145fa14ebbb2e95fa"
     },
     "test/popup.test.js": {
-      "bytes": 7972,
-      "sha256": "48a66ee7b167aa517e365a60fe4c8e960dc2b318b8daea67ee67c113ea2a8d47"
+      "bytes": 8629,
+      "sha256": "5549d865873961ce0354ee4824f68eaa923d42a8fb79d9fc4fbd87690a4db9e9"
     }
   },
   "outputs": {
     "docs/assets/architecture.svg": {
-      "bytes": 4379,
-      "sha256": "f9909a355fb29d393281bee8f819032e1c8b085df0b34aeb96114b29ac457569"
+      "bytes": 4444,
+      "sha256": "5821eed4da62a55ef8845e9d05841352f6b994889ad06cb8d96ca1447feadc57"
     },
     "docs/assets/coverage.svg": {
       "bytes": 3766,
       "sha256": "06a0ac1a9beeaa739045cc13b6d9e6a55e79ffe49e4c2dcc25beceff46c9fb93"
+    },
+    "docs/assets/lifecycle-matrix.png": {
+      "bytes": 96961,
+      "sha256": "9dcaa0768442bd77e9da04beec1822d020b4186d61c9059cc94ec92b5bd1ae6d"
+    },
+    "docs/assets/lifecycle-timeline.svg": {
+      "bytes": 7996,
+      "sha256": "6898ae22fb071e5e2cb35bf713cbbf8021358b1eb6ec52d113c09336244a7759"
+    },
+    "docs/assets/lifecycle-workflow.gif": {
+      "bytes": 202235,
+      "sha256": "62791210423cf5e46f1d7d34ab497f2426db2cc4acd7e9caeb3731bfed9965c7"
     },
     "docs/assets/offline-workflow.gif": {
       "bytes": 103693,
@@ -158,6 +276,10 @@
     "docs/assets/policy-matrix.png": {
       "bytes": 34690,
       "sha256": "4e470410d22a70c053f1aa26e1386d7071d4090f9f673234435164400bea8b12"
+    },
+    "docs/assets/popup-lifecycle-final.png": {
+      "bytes": 78947,
+      "sha256": "63291435631b20b5ca3729f0f6ef370fa153a2989893b8e8b8e3e0dad21f9691"
     },
     "docs/assets/popup-offline-fixture.png": {
       "bytes": 78357,
@@ -170,6 +292,14 @@
     "docs/evidence/coverage-summary.json": {
       "bytes": 380,
       "sha256": "9e2498f08db3ab1bfdf43360c7b438f3ffa74719ad310e0b33e3c75f1433db05"
+    },
+    "docs/evidence/lifecycle-evidence.json": {
+      "bytes": 1498,
+      "sha256": "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229"
+    },
+    "docs/evidence/lifecycle-evidence.txt": {
+      "bytes": 826,
+      "sha256": "d0693db723db69d5fa420c14e9c5af1e76315cc81076c295733aefe7fb5ab8de"
     },
     "docs/evidence/policy-matrix.txt": {
       "bytes": 527,

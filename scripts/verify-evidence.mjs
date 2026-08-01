@@ -7,6 +7,17 @@ import { fileURLToPath } from "node:url";
 import pngjs from "pngjs";
 
 import { decodeGifEvidence } from "./gif-evidence.mjs";
+import {
+  canonicalLifecycleEvidence,
+  LIFECYCLE_SCENARIO,
+  LIFECYCLE_STEP_KINDS,
+  normalizeLifecycleEvidence,
+} from "./lifecycle-evidence.mjs";
+import {
+  buildLifecycleTimelineSvg,
+  buildLifecycleTranscript,
+  lifecycleReceiptSha256,
+} from "./lifecycle-render.mjs";
 
 const { PNG } = pngjs;
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
@@ -46,6 +57,45 @@ const EXPECTED_CONTRACT = {
       "c6b8ea0c771011e2404d3e9a94deddaeee12d77a4901c61b57da1e27d4602e90",
     ],
   },
+  lifecycle: {
+    receipt: {
+      bytes: 1498,
+      sha256:
+        "b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229",
+    },
+    timeline: {
+      width: 1440,
+      height: 720,
+    },
+    matrix: {
+      width: 1440,
+      height: 960,
+      decodedRgbaSha256:
+        "d0685b89a337c7e956abf9b50023fd36718ff01e9dfc25e109133054e062ec67",
+    },
+    workflowGif: {
+      width: 960,
+      height: 540,
+      frameCount: 8,
+      delaysMs: [1800, 1800, 1800, 1800, 1800, 1800, 1800, 1800],
+      framePixelSha256: [
+        "f01647748136c6f232b5a81d1d982dd2a085f7a184808f3f529ee6af0bec44a9",
+        "e8fc466fa196fa52892c319bca44cc5684cd0d90983749b974d9f737303e08df",
+        "a8da980f265afb7319f22189142158708e7c98eac218b9fcc155b1d514a631cf",
+        "ef364042fe90b3e849d717f72453c4ca97823ab631bc509a3a0ad1e6ee04dedc",
+        "26e36eeaa55d101b5ffdaba0d885cf8c77e03503af62ae19d108f20146b9cdb2",
+        "30e44e135a9e9cbc8a2d1969148fcdf118cdddd42056d7c4b4716494e95a64cf",
+        "6872dcdf4428d4ab5a022bdbe1a69fb5d9728c241b775159e0161d9c63153144",
+        "5e4332022e17f90c1902ff8d3733731b73c5b12ee83323735ef9cb9861e93e17",
+      ],
+    },
+    popup: {
+      width: 336,
+      height: 564,
+      decodedRgbaSha256:
+        "c7675ac2d99d8b4ad3d1647e1c3da2c4d9bfbe33f769bafcccdd500ef1d0804d",
+    },
+  },
   staticInputs: [
     "README.md",
     "background.js",
@@ -60,9 +110,12 @@ const EXPECTED_CONTRACT = {
     "popup.html",
     "popup.js",
     "scripts/capture-visuals-docker.sh",
+    "scripts/capture-lifecycle.mjs",
     "scripts/capture-visuals.mjs",
     "scripts/gif-evidence.mjs",
     "scripts/lifecycle-evidence.mjs",
+    "scripts/lifecycle-fixture.mjs",
+    "scripts/lifecycle-render.mjs",
     "scripts/promote-visuals.mjs",
     "scripts/verify-evidence.mjs",
     "scripts/visual-contract.json",
@@ -70,11 +123,17 @@ const EXPECTED_CONTRACT = {
   outputs: [
     "docs/assets/architecture.svg",
     "docs/assets/coverage.svg",
+    "docs/assets/lifecycle-matrix.png",
+    "docs/assets/lifecycle-timeline.svg",
+    "docs/assets/lifecycle-workflow.gif",
     "docs/assets/offline-workflow.gif",
     "docs/assets/policy-matrix.png",
+    "docs/assets/popup-lifecycle-final.png",
     "docs/assets/popup-offline-fixture.png",
     "docs/assets/setup-flow.svg",
     "docs/evidence/coverage-summary.json",
+    "docs/evidence/lifecycle-evidence.json",
+    "docs/evidence/lifecycle-evidence.txt",
     "docs/evidence/policy-matrix.txt",
     "images/icon128.png",
   ],
@@ -90,6 +149,8 @@ const EXPECTED_CAPTURE_POLICY = {
     "Rendered from the exact transcript computed by content.js::choosePlaybackRate.",
   provenance:
     "This manifest is a reproducibility and drift contract produced by audited repository scripts; it is not cryptographic attestation of the host or container operator.",
+  lifecycle:
+    "A second fresh unpacked-extension profile observed offline SPA, ad-pod, two-tab, quiescent worker stop, message-driven wake, storage, badge, and popup boundaries; categorical renderings bind to its canonical receipt.",
 };
 
 async function sha256(filePath) {
@@ -193,6 +254,27 @@ async function verifyPng(file, width, height = null) {
     throw new Error(
       `${file} dimensions ${image.width}×${image.height} do not match evidence contract`,
     );
+  }
+}
+
+async function verifyLifecyclePng(file, expected, maximumBytes) {
+  const filePath = await resolveRegularFile(file);
+  const bytes = await readFile(filePath);
+  if (bytes.length > maximumBytes) {
+    throw new Error(`${file} exceeds the lifecycle PNG size ceiling`);
+  }
+  await verifySafePngChunks(file);
+  const image = PNG.sync.read(bytes);
+  if (
+    image.width !== expected.width ||
+    image.height !== expected.height ||
+    image.depth !== 8 ||
+    image.colorType !== 2 ||
+    image.interlace !== false ||
+    createHash("sha256").update(image.data).digest("hex") !==
+      expected.decodedRgbaSha256
+  ) {
+    throw new Error(`${file} decoded pixel contract drifted`);
   }
 }
 
@@ -356,8 +438,12 @@ async function verifySvg(file) {
       ]),
     ],
     ["text", new Set(["x", "y", "class", "text-anchor"])],
-    ["g", new Set()],
+    ["g", new Set(["aria-label"])],
     ["circle", new Set(["cx", "cy", "r", "fill"])],
+    [
+      "line",
+      new Set(["x1", "y1", "x2", "y2", "stroke", "stroke-width"]),
+    ],
   ]);
   const stack = [];
   const tagPattern =
@@ -433,6 +519,147 @@ async function verifySvg(file) {
   }
 }
 
+async function verifyLifecycleEvidence(manifest) {
+  const receiptFile = "docs/evidence/lifecycle-evidence.json";
+  const transcriptFile = "docs/evidence/lifecycle-evidence.txt";
+  const timelineFile = "docs/assets/lifecycle-timeline.svg";
+  const matrixFile = "docs/assets/lifecycle-matrix.png";
+  const workflowFile = "docs/assets/lifecycle-workflow.gif";
+  const popupFile = "docs/assets/popup-lifecycle-final.png";
+  const receiptBytes = await readFile(await resolveRegularFile(receiptFile));
+  const parsed = JSON.parse(receiptBytes);
+  const evidence = normalizeLifecycleEvidence(parsed);
+  const canonicalBytes = canonicalLifecycleEvidence(evidence);
+  if (!receiptBytes.equals(canonicalBytes)) {
+    throw new Error("lifecycle receipt is not byte-canonical");
+  }
+  const receiptSha256 = lifecycleReceiptSha256(evidence);
+  if (
+    receiptBytes.length !== EXPECTED_CONTRACT.lifecycle.receipt.bytes ||
+    receiptSha256 !== EXPECTED_CONTRACT.lifecycle.receipt.sha256
+  ) {
+    throw new Error("lifecycle receipt digest drifted");
+  }
+
+  const input = { evidence, receiptSha256 };
+  const expectedTranscript = buildLifecycleTranscript(input);
+  const transcriptBytes = await readFile(
+    await resolveRegularFile(transcriptFile),
+  );
+  if (!transcriptBytes.equals(expectedTranscript)) {
+    throw new Error("lifecycle transcript is not receipt-derived");
+  }
+  const expectedTimeline = Buffer.from(
+    buildLifecycleTimelineSvg(input),
+    "utf8",
+  );
+  const timelineBytes = await readFile(await resolveRegularFile(timelineFile));
+  if (!timelineBytes.equals(expectedTimeline)) {
+    throw new Error("lifecycle timeline is not receipt-derived");
+  }
+
+  const textualEvidence = Buffer.concat([
+    receiptBytes,
+    transcriptBytes,
+    timelineBytes,
+  ]).toString("utf8");
+  if (
+    /chrome-extension:\/\/|blob:|\b(?:target|version|registration|extension)Id\b|\bgh[pousr]_[A-Za-z0-9_]+|github_pat_|AKIA[0-9A-Z]{16}|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}|(?:^|[\s"'])\/(?:home|Users|tmp)\/|[A-Za-z]:\\|\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}|[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/i.test(
+      textualEvidence,
+    ) ||
+    /[\u0000-\u0008\u000b\u000c\u000e-\u001f]/.test(textualEvidence)
+  ) {
+    throw new Error("lifecycle textual evidence exposes a raw or unsafe value");
+  }
+
+  await verifySvg(timelineFile);
+  await verifyLifecyclePng(
+    matrixFile,
+    EXPECTED_CONTRACT.lifecycle.matrix,
+    1_500_000,
+  );
+  await verifyLifecyclePng(
+    popupFile,
+    EXPECTED_CONTRACT.lifecycle.popup,
+    500_000,
+  );
+  await verifyGif(
+    workflowFile,
+    EXPECTED_CONTRACT.lifecycle.workflowGif,
+  );
+
+  const expectedLifecycleManifest = {
+    schemaVersion: 1,
+    scenario: LIFECYCLE_SCENARIO,
+    receipt: {
+      path: receiptFile,
+      ...EXPECTED_CONTRACT.lifecycle.receipt,
+    },
+    stepKinds: [...LIFECYCLE_STEP_KINDS],
+    observationCount: 8,
+    initialCount: 0,
+    finalCount: 6,
+    fixtureFulfillments: 4,
+    unexpectedHttpRequests: 0,
+    renderedArtifacts: {
+      [transcriptFile]: {
+        kind: "plainTranscript",
+        sourceReceiptSha256: receiptSha256,
+      },
+      [timelineFile]: {
+        kind: "categoricalTimeline",
+        width: EXPECTED_CONTRACT.lifecycle.timeline.width,
+        height: EXPECTED_CONTRACT.lifecycle.timeline.height,
+        sourceReceiptSha256: receiptSha256,
+      },
+      [matrixFile]: {
+        kind: "categoricalMatrix",
+        width: EXPECTED_CONTRACT.lifecycle.matrix.width,
+        height: EXPECTED_CONTRACT.lifecycle.matrix.height,
+        decodedRgbaSha256:
+          EXPECTED_CONTRACT.lifecycle.matrix.decodedRgbaSha256,
+        sourceReceiptSha256: receiptSha256,
+      },
+      [workflowFile]: {
+        kind: "categoricalReplay",
+        delaysMs: EXPECTED_CONTRACT.lifecycle.workflowGif.delaysMs,
+        frameCount: EXPECTED_CONTRACT.lifecycle.workflowGif.frameCount,
+        framePixelSha256:
+          EXPECTED_CONTRACT.lifecycle.workflowGif.framePixelSha256,
+        height: EXPECTED_CONTRACT.lifecycle.workflowGif.height,
+        width: EXPECTED_CONTRACT.lifecycle.workflowGif.width,
+        sourceReceiptSha256: receiptSha256,
+      },
+    },
+    coCapturedArtifacts: {
+      [popupFile]: {
+        kind: "realExtensionPopupBody",
+        width: EXPECTED_CONTRACT.lifecycle.popup.width,
+        height: EXPECTED_CONTRACT.lifecycle.popup.height,
+        observedText: "6",
+        decodedRgbaSha256:
+          EXPECTED_CONTRACT.lifecycle.popup.decodedRgbaSha256,
+        coCapturedWithReceiptSha256: receiptSha256,
+      },
+    },
+    scope: {
+      frameTimingRepresentsElapsedTime: false,
+      workerStopBoundary: "quiescent",
+      liveYouTubeAcceptance: false,
+    },
+  };
+  assert.deepStrictEqual(
+    manifest.lifecycleEvidence,
+    expectedLifecycleManifest,
+    "lifecycle manifest contract drift",
+  );
+  assert.deepStrictEqual(
+    manifest.outputs[receiptFile],
+    EXPECTED_CONTRACT.lifecycle.receipt,
+    "lifecycle receipt output descriptor drift",
+  );
+}
+
 async function main() {
   const contract = JSON.parse(await readFile(CONTRACT_PATH, "utf8"));
   assert.deepStrictEqual(
@@ -455,6 +682,7 @@ async function main() {
       "browserEvidence",
       "capturePolicy",
       "inputs",
+      "lifecycleEvidence",
       "outputs",
       "schemaVersion",
       "toolchain",
@@ -558,6 +786,7 @@ async function main() {
   await verifySvg("docs/assets/architecture.svg");
   await verifySvg("docs/assets/coverage.svg");
   await verifySvg("docs/assets/setup-flow.svg");
+  await verifyLifecycleEvidence(manifest);
 
   process.stdout.write(
     `verified ${Object.keys(manifest.outputs).length} visual outputs\n`,

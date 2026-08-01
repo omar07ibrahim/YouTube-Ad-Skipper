@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720"
+     viewBox="0 0 1440 720" role="img"
+     aria-labelledby="lifecycle-title lifecycle-description">
+  <title id="lifecycle-title">Offline Manifest V3 lifecycle evidence timeline</title>
+  <desc id="lifecycle-description">Eight categorical offline fixture observations from a fresh profile through a stopped and woken service worker to the final popup. Sequence position is not elapsed time, and live YouTube acceptance is not claimed. Receipt SHA-256 b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229.</desc>
+  <style>
+    .eyebrow { fill: #f87171; font: 800 13px system-ui, sans-serif; letter-spacing: 1.8px; }
+    .heading { fill: #f8fafc; font: 750 30px system-ui, sans-serif; }
+    .ordinal { fill: #08111f; font: 800 14px system-ui, sans-serif; }
+    .label { fill: #f8fafc; font: 720 16px system-ui, sans-serif; }
+    .headline { fill: #94a3b8; font: 560 13px system-ui, sans-serif; }
+    .count { fill: #f8fafc; font: 800 23px ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .fact { fill: #cbd5e1; font: 550 13px ui-monospace, SFMono-Regular, Consolas, monospace; }
+    .claim { fill: #cbd5e1; font: 750 12px system-ui, sans-serif; letter-spacing: 1.1px; }
+    .receipt { fill: #94a3b8; font: 550 12px ui-monospace, SFMono-Regular, Consolas, monospace; }
+  </style>
+  <rect width="1440" height="720" rx="24" fill="#090d16"/>
+  <text x="42" y="43" class="eyebrow">REPRODUCIBLE LIFECYCLE RECEIPT</text>
+  <text x="42" y="84" class="heading">Manifest V3 state transitions, observed offline</text>
+  <text x="42" y="118" class="claim">CATEGORICAL OBSERVATIONS · NOT ELAPSED TIME</text>
+  <text x="1398" y="118" text-anchor="end" class="claim">OFFLINE FIXTURE · NOT LIVE YOUTUBE ACCEPTANCE</text>
+
+    <g aria-label="Step 1: Fresh profile">
+      <rect x="42" y="154" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="42" y="154" width="7" height="184" rx="4"
+            fill="#38bdf8"/>
+      <circle cx="80" cy="192" r="19" fill="#38bdf8"/>
+      <text x="80" y="198" text-anchor="middle" class="ordinal">1</text>
+      <text x="110" y="188" class="label">Fresh profile</text>
+      <text x="110" y="212" class="headline">Worker ready</text>
+      <text x="66" y="266" class="count">COUNT 0</text>
+      <text x="66" y="297" class="fact">count 0</text>
+      <text x="66" y="320" class="fact">running · targets 1</text>
+    </g>
+    <g aria-label="Step 2: Initial action">
+      <rect x="390" y="154" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="390" y="154" width="7" height="184" rx="4"
+            fill="#ef4444"/>
+      <circle cx="428" cy="192" r="19" fill="#ef4444"/>
+      <text x="428" y="198" text-anchor="middle" class="ordinal">2</text>
+      <text x="458" y="188" class="label">Initial action</text>
+      <text x="458" y="212" class="headline">First durable count</text>
+      <text x="414" y="266" class="count">COUNT 1</text>
+      <text x="414" y="297" class="fact">count 1</text>
+      <text x="414" y="320" class="fact">observed clicks 1</text>
+    </g>
+    <g aria-label="Step 3: Same-document SPA">
+      <rect x="738" y="154" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="738" y="154" width="7" height="184" rx="4"
+            fill="#f97316"/>
+      <circle cx="776" cy="192" r="19" fill="#f97316"/>
+      <text x="776" y="198" text-anchor="middle" class="ordinal">3</text>
+      <text x="806" y="188" class="label">Same-document SPA</text>
+      <text x="806" y="212" class="headline">Rate restored before click</text>
+      <text x="762" y="266" class="count">COUNT 2</text>
+      <text x="762" y="297" class="fact">count 2 · same document</text>
+      <text x="762" y="320" class="fact">2× accelerated → 1× at click</text>
+    </g>
+    <g aria-label="Step 4: Ad-pod rotation">
+      <rect x="1086" y="154" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="1086" y="154" width="7" height="184" rx="4"
+            fill="#eab308"/>
+      <circle cx="1124" cy="192" r="19" fill="#eab308"/>
+      <text x="1124" y="198" text-anchor="middle" class="ordinal">4</text>
+      <text x="1154" y="188" class="label">Ad-pod rotation</text>
+      <text x="1154" y="212" class="headline">New source, same video</text>
+      <text x="1110" y="266" class="count">COUNT 3</text>
+      <text x="1110" y="297" class="fact">count 3 · source changed</text>
+      <text x="1110" y="320" class="fact">same video · clicks 1</text>
+    </g>
+    <g aria-label="Step 5: Two-tab barrier">
+      <rect x="42" y="372" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="42" y="372" width="7" height="184" rx="4"
+            fill="#a78bfa"/>
+      <circle cx="80" cy="410" r="19" fill="#a78bfa"/>
+      <text x="80" y="416" text-anchor="middle" class="ordinal">5</text>
+      <text x="110" y="406" class="label">Two-tab barrier</text>
+      <text x="110" y="430" class="headline">Both clicks retained</text>
+      <text x="66" y="484" class="count">COUNT 5</text>
+      <text x="66" y="515" class="fact">count 5 · delta 2</text>
+      <text x="66" y="538" class="fact">tab clicks [1, 1]</text>
+    </g>
+    <g aria-label="Step 6: Worker stopped">
+      <rect x="390" y="372" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="390" y="372" width="7" height="184" rx="4"
+            fill="#64748b"/>
+      <circle cx="428" cy="410" r="19" fill="#64748b"/>
+      <text x="428" y="416" text-anchor="middle" class="ordinal">6</text>
+      <text x="458" y="406" class="label">Worker stopped</text>
+      <text x="458" y="430" class="headline">Target leaves the runtime</text>
+      <text x="414" y="484" class="count">COUNT 5</text>
+      <text x="414" y="515" class="fact">last committed count 5</text>
+      <text x="414" y="538" class="fact">running → stopped · targets 1 → 0</text>
+    </g>
+    <g aria-label="Step 7: Worker woken">
+      <rect x="738" y="372" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="738" y="372" width="7" height="184" rx="4"
+            fill="#14b8a6"/>
+      <circle cx="776" cy="410" r="19" fill="#14b8a6"/>
+      <text x="776" y="416" text-anchor="middle" class="ordinal">7</text>
+      <text x="806" y="406" class="label">Worker woken</text>
+      <text x="806" y="430" class="headline">Message restores execution</text>
+      <text x="762" y="484" class="count">COUNT 6</text>
+      <text x="762" y="515" class="fact">count 6 · stopped → running</text>
+      <text x="762" y="538" class="fact">cycle 0 → 1 · same registration/version</text>
+    </g>
+    <g aria-label="Step 8: Final popup">
+      <rect x="1086" y="372" width="316" height="184" rx="18"
+            fill="#111827" stroke="#334155" stroke-width="2"/>
+      <rect x="1086" y="372" width="7" height="184" rx="4"
+            fill="#22c55e"/>
+      <circle cx="1124" cy="410" r="19" fill="#22c55e"/>
+      <text x="1124" y="416" text-anchor="middle" class="ordinal">8</text>
+      <text x="1154" y="406" class="label">Final popup</text>
+      <text x="1154" y="430" class="headline">Visible state converged</text>
+      <text x="1110" y="484" class="count">COUNT 6</text>
+      <text x="1110" y="515" class="fact">popup count 6</text>
+      <text x="1110" y="538" class="fact">matches lifecycle count</text>
+    </g>
+  <line x1="42" y1="610" x2="1398" y2="610" stroke="#334155"/>
+  <text x="42" y="646" class="receipt">RECEIPT SHA-256 b64d941efe604ac00ea99c4d2fcb2e0056eda95b0622a2e4b0f62e153c7bc229</text>
+  <text x="42" y="678" class="receipt">Eight ordered observations · position encodes sequence only</text>
+</svg>
