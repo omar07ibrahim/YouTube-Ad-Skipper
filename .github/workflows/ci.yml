@@ -1,0 +1,193 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CI: "true"
+  npm_config_audit: "false"
+  npm_config_fund: "false"
+  npm_config_ignore_scripts: "true"
+
+jobs:
+  quality:
+    name: Runtime, tests, and committed evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - name: Check out the immutable event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Set up exact Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "22.19.0"
+          package-manager-cache: false
+
+      - name: Assert event, runtime, and clean checkout
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "omar07ibrahim/YouTube-Ad-Skipper"
+          if test "$GITHUB_EVENT_NAME" = "push"; then
+            test "$GITHUB_REF" = "refs/heads/main"
+          else
+            test "$GITHUB_EVENT_NAME" = "pull_request"
+            [[ "$GITHUB_REF" =~ ^refs/pull/[1-9][0-9]*/merge$ ]]
+          fi
+          [[ "$GITHUB_SHA" =~ ^[0-9a-f]{40}$ ]]
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(node --version)" = "v22.19.0"
+          test -z "${OPENAI_API_KEY:-}"
+          test "$(git status --porcelain=v1 --untracked-files=all --ignore-submodules=none)" = ""
+
+      - name: Install the integrity-locked review tools
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Run the complete offline gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check
+          npm run coverage
+          git diff --exit-code
+          test "$(git status --porcelain=v1 --untracked-files=all --ignore-submodules=none)" = ""
+
+  visual-capture:
+    name: Reproduce the offline Chromium evidence
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    steps:
+      - name: Check out the immutable event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Set up the recorded host runtime
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "22.19.0"
+          package-manager-cache: false
+
+      - name: Assert the capture boundary
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "omar07ibrahim/YouTube-Ad-Skipper"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(node --version)" = "v22.19.0"
+          test -z "${OPENAI_API_KEY:-}"
+          docker version
+          test "$(git status --porcelain=v1 --untracked-files=all --ignore-submodules=none)" = ""
+
+      - name: Install the integrity-locked verifier
+        run: npm ci --ignore-scripts --no-audit --no-fund
+
+      - name: Recapture every offline browser artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run visuals:capture
+          npm run visuals:verify
+          git diff --exit-code
+          test "$(git status --porcelain=v1 --untracked-files=all --ignore-submodules=none)" = ""
+
+      - name: Upload the independently reproduced evidence
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: youtube-ad-skipper-visual-evidence-${{ github.sha }}
+          path: |
+            docs/assets/
+            docs/evidence/
+            images/icon128.png
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 14
+
+  package:
+    name: Minimal unpacked-extension bundle
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Check out the immutable event revision
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+          ref: ${{ github.sha }}
+
+      - name: Set up exact Node.js
+        uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e # v6.4.0
+        with:
+          node-version: "22.19.0"
+          package-manager-cache: false
+
+      - name: Validate and stage the runtime-only package
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$GITHUB_REPOSITORY" = "omar07ibrahim/YouTube-Ad-Skipper"
+          test "$(git rev-parse HEAD)" = "$GITHUB_SHA"
+          test "$(node --version)" = "v22.19.0"
+          node <<'NODE'
+          const fs = require("node:fs");
+          const manifest = JSON.parse(fs.readFileSync("manifest.json", "utf8"));
+          if (manifest.manifest_version !== 3 || manifest.version !== "2.0.0") process.exit(1);
+          if (JSON.stringify(manifest.permissions) !== '["storage"]') process.exit(1);
+          if (Object.hasOwn(manifest, "host_permissions")) process.exit(1);
+          if (manifest.content_scripts?.length !== 1) process.exit(1);
+          if (JSON.stringify(manifest.content_scripts[0].matches) !== '["https://www.youtube.com/*"]') process.exit(1);
+          if (JSON.stringify(manifest.content_scripts[0].js) !== '["content.js"]') process.exit(1);
+          NODE
+          stage="$RUNNER_TEMP/extension"
+          test ! -e "$stage"
+          mkdir -m 700 "$stage"
+          while IFS= read -r path; do
+            install -D -m 0644 "$path" "$stage/$path"
+          done <<'FILES'
+          LICENSE
+          background.js
+          content.js
+          images/icon128.png
+          images/icon16.png
+          images/icon48.png
+          manifest.json
+          popup.css
+          popup.html
+          popup.js
+          FILES
+          (
+            cd "$stage"
+            find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS
+          )
+          expected=$'LICENSE\nSHA256SUMS\nbackground.js\ncontent.js\nimages/icon128.png\nimages/icon16.png\nimages/icon48.png\nmanifest.json\npopup.css\npopup.html\npopup.js'
+          test "$(find "$stage" -type f -printf '%P\n' | sort)" = "$expected"
+          test -z "$(find "$stage" -type l -print -quit)"
+          test "$(git status --porcelain=v1 --untracked-files=all --ignore-submodules=none)" = ""
+
+      - name: Upload the verified unpacked extension
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: youtube-ad-skipper-unpacked-v2.0.0-${{ github.sha }}
+          path: ${{ runner.temp }}/extension/
+          if-no-files-found: error
+          include-hidden-files: false
+          compression-level: 0
+          retention-days: 14
