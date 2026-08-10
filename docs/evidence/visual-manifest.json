@@ -232,8 +232,8 @@
       "sha256": "5645731cd3604dc93ec3d2367e3f2e7c4518d71e383da5c77d6f9507709d7dca"
     },
     "test/lifecycle-fixture.test.js": {
-      "bytes": 12874,
-      "sha256": "26a0cb349ea000df0ea453739efded6c228926f0ca6a6860a7dbd1a7031df0bc"
+      "bytes": 13072,
+      "sha256": "6e7861e94a3d016884975cd3f2d5b312f6fcd004161682b3c20556d8c8824411"
     },
     "test/lifecycle-render.test.js": {
       "bytes": 10675,

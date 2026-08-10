@@ -153,9 +153,9 @@ function plain(value) {
 }
 
 function inlineScript(html) {
-  const match = html.match(/<script>\n([\s\S]+?)\n    <\/script>/);
+  const match = html.match(/<script>\n([\s\S]+?)\n    <\/script>/i);
   assert.ok(match, "fixture must contain one extractable inline script");
-  assert.equal((html.match(/<script>/g) || []).length, 1);
+  assert.equal((html.match(/<script>/gi) || []).length, 1);
   return match[1];
 }
 
@@ -263,6 +263,11 @@ test("rendering is deterministic, inline-only, and rejects injected roles", asyn
     return first;
   });
   assert.equal(new Set(outputs).size, 4);
+
+  const uppercaseScriptTags = outputs[0]
+    .replace("<script>", "<SCRIPT>")
+    .replace("</script>", "</SCRIPT>");
+  assert.equal(inlineScript(uppercaseScriptTags), inlineScript(outputs[0]));
 
   for (const malicious of [
     "primary<script>alert(1)</script>",
