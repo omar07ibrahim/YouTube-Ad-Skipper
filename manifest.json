@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "YouTube Ad Skipper",
-  "version": "1.0",
-  "description": "Automatically skips YouTube ads.",
-  "permissions": ["storage", "activeTab","scripting"],
-  "host_permissions": ["*://www.youtube.com/*"],
+  "version": "2.0.0",
+  "minimum_chrome_version": "102",
+  "description": "Conservatively accelerates longer YouTube ads and uses available skip controls.",
+  "permissions": ["storage"],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -18,8 +18,9 @@
   },
   "content_scripts": [
     {
-      "matches": ["*://www.youtube.com/*"],
-      "js": ["content.js"]
+      "matches": ["https://www.youtube.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
     }
   ],
   "icons": {

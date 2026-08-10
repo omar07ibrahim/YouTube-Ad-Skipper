@@ -1,71 +1,77 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>YouTube Ad Skipper</title>
-  <style>
-    body {
-      font-family: 'Arial', sans-serif;
-      margin: 0;
-      padding: 10px;
-      text-align: center;
-      background-color: #1c1c1c;
-      color: #ff4545;
-      border-radius: 30px;
-    }
-    h1 {
-      color: #ff4545;
-      font-size: 24px;
-    }
-    .button {
-      display: inline-block;
-      padding: 10px 20px;
-      margin: 10px;
-      font-size: 14px;
-      cursor: pointer;
-      text-align: center;
-      text-decoration: none;
-      outline: none;
-      color: #fff;
-      background-color: #0088cc;
-      border: none;
-      border-radius: 10px;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: all 0.3s;
-    }
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>YouTube Ad Skipper</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <header class="brand">
+      <img
+        class="brand__icon"
+        src="images/icon48.png"
+        width="48"
+        height="48"
+        alt=""
+      >
+      <div>
+        <p class="eyebrow">Local playback helper</p>
+        <h1>YouTube Ad Skipper</h1>
+      </div>
+    </header>
 
-    .button:hover {
-      background-color: #005c99;
-    }
-    .button:active {
-      background-color: #005c99;
-      box-shadow: 0 5px #666;
-      transform: translateY(4px);
-    }
-    .banner {
-      margin-top: 20px;
-      padding: 10px;
-      border-radius: 15px;
-    }
-    .banner img {
-      height: 50px;
-      border-radius: 10px;
-    }
-    p.status {
-      color: #4CAF50;
-    }
-  </style>
-</head>
-<body>
-  <h1>YouTube Ad Skipper</h1>
-  <p class="status">Status: Active </p>
-  <p></p>
-  <p>Skipped ads: <span id="adsSkippedCount">Loading...</span></p>
-  <a href="https://t.me/omar07ibrahim" target="_blank" class="button">My Telegram</a>  
-  <div class="banner">
-    <a href="https://www.buymeacoffee.com/omar7i" target="_blank">
-      <img src="https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-1.svg" alt="Buy Me A Coffee">
-    </a>
-  </div>
-  <script src="popup.js"></script>
-</body>
+    <main>
+      <section class="status-card" aria-labelledby="status-title">
+        <div class="status-card__heading">
+          <h2 id="status-title">Local-only operation</h2>
+          <span class="status-pill">
+            <span class="status-pill__dot" aria-hidden="true"></span>
+            No telemetry
+          </span>
+        </div>
+        <p class="status-card__copy">
+          Watches the YouTube player locally. No browsing data leaves the
+          extension.
+        </p>
+      </section>
+
+      <section class="counter-card" aria-labelledby="counter-title">
+        <div>
+          <p class="eyebrow" id="counter-title">Skip actions</p>
+          <p class="counter-card__description">
+            Skip-control clicks committed to durable local counter storage.
+          </p>
+        </div>
+        <output
+          id="adsSkippedCount"
+          class="counter-card__value"
+          aria-live="polite"
+          aria-label="0 skip actions recorded"
+        >0</output>
+      </section>
+
+      <section class="policy" aria-labelledby="policy-title">
+        <h2 id="policy-title">Conservative by design</h2>
+        <ul>
+          <li><strong>6 s</strong><span>grace period</span></li>
+          <li><strong>2×</strong><span>maximum added rate</span></li>
+          <li><strong>1</strong><span>controller per page</span></li>
+        </ul>
+      </section>
+
+      <a
+        class="issue-link"
+        href="https://github.com/omar07ibrahim/YouTube-Ad-Skipper/issues"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Report a compatibility issue
+        <span class="sr-only"> (opens in a new tab)</span>
+        <span aria-hidden="true">↗</span>
+      </a>
+    </main>
+
+    <footer>Runs only on <code>www.youtube.com</code></footer>
+    <script src="popup.js"></script>
+  </body>
 </html>

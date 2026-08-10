@@ -1,0 +1,11 @@
+YouTube Ad Skipper — policy matrix
+
+scenario                 age  remaining  original   result
+------------------  --------  ---------  --------  -------
+grace window          5.999s        30s        1x       1x
+long ad               6.000s        30s        1x       2x
+short remainder       6.000s         8s        1x       1x
+user-selected 3x     10.000s        25s        3x       3x
+unknown duration     10.000s    unknown      1.5x     1.5x
+
+Rates computed by content.js::choosePlaybackRate from the scenarios above.

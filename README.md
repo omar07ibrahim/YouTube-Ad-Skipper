@@ -1,59 +1,228 @@
-<h1 align="center">YouTube Ad Accelerator & Skipper</h1>
-
+# YouTube Ad Skipper
 
 <p align="center">
-  <strong>Enjoy an uninterrupted and ad-free YouTube experience!</strong>
+  <img src="images/icon128.png" width="128" height="128" alt="YouTube Ad Skipper icon">
 </p>
 
----
+A small Manifest V3 extension that uses YouTube's rendered player controls: it
+requests an available skip action and conservatively accelerates only longer
+ads. It does not block ad requests, hide network traffic, or promise an
+ad-free session.
 
-<h2>About the Project</h2>
+## Why version 2 exists
 
-<p>
-The <strong>YouTube Ad Accelerator and Skipper</strong> is your guardian against YouTube ads. It accelerates playback and skips ads, ensuring smooth and uninterrupted video viewing.
+The original extension started the same polling script twice and left videos
+at `9.5×` after an ad. Version 2 replaces that behavior with one owned state
+machine:
+
+- one declarative content script, with no programmatic reinjection;
+- a six-second grace period before any acceleration;
+- a `2×` extension-added ceiling, disabled for the last eight seconds;
+- skip-first ordering and playback-rate restoration;
+- retrying action reports with a bounded deduplication window across worker
+  wake-ups;
+- serialized counter updates from simultaneous tabs in each active worker;
+- exact sender checks and a single `storage` permission.
+
+The counter is deliberately named **skip actions**. A live content context
+retries one random action ID until the worker acknowledges its local storage
+commit. The worker keeps the latest 256 IDs in the same versioned value as the
+count, suppresses retained replays, and reapplies the badge before acknowledging
+a duplicate. This repairs worker interruption windows around storage, badge,
+and response delivery without recording a URL, tab ID, video ID, or timestamp.
+
+This is bounded idempotency, not a transaction with the page. Destroying the
+content context after a successful DOM click but before its first report can
+still leave that click unrecorded; a retry delayed beyond 256 newer actions is
+outside the deduplication window. If 128 reports remain pending, or secure ID
+generation is unavailable, skipping stays active but newer clicks are omitted
+from the best-effort tally. The tally is not a count of unique ads and is not
+proof that YouTube completed a skip.
+
+## Runtime workflow
+
+![Runtime architecture: one content controller and rate-ownership state machine feed an exact message boundary, MV3 worker, trusted storage, popup, and badge](docs/assets/architecture.svg)
+
+The state machine treats YouTube's DOM as an unstable adapter. Source changes,
+time rollbacks, page lifecycle events, user rate changes, and temporary media
+setter failures have explicit recovery paths.
+
+## Reproducible visual evidence
+
+### Offline MV3 lifecycle replay
+
+<p align="center">
+  <img src="docs/assets/lifecycle-workflow.gif" width="720" alt="Eight-frame categorical replay of the offline Manifest V3 lifecycle from a fresh profile through SPA and ad-pod actions, a stopped worker, message-driven wake-up, and a final count of six">
 </p>
 
-<ul>
-  <li><b>Automatic Ad Detection:</b> No more sudden interruptions.</li>
-  <li><b>Real-time Acceleration:</b> Ads are sped up on the fly.</li>
-  <li><b>Auto-Skip:</b> Bypass ads as soon as they become skippable.</li>
-</ul>
+This replay comes from one real unpacked-extension run in pinned Chromium 140.
+Four exact HTTPS fixture documents were fulfilled locally and every other
+HTTP(S) request was aborted. The production content script observed native
+generated WAV media, a same-document SPA transition, a new ad-pod source on the
+same video element, and a two-tab release. At a quiescent count of `5`, the
+capture observed the worker move from running to stopped and its active target
+count move from `1` to `0`; one gated content-script action then woke the same
+registration/version and converged storage, badge, and popup at `6`.
 
-<h2>Installation</h2>
+The frames are receipt-derived categorical views. Their `1.8 s` holds are for
+readability, not measured event durations. This single offline replay does not
+prove crash atomicity or current live YouTube behavior.
 
-<ol>
-  <li><strong>Download:</strong> Grab the latest release from the <a href="https://codeload.github.com/omar07ibrahim/YouTube-Ad-Skipper/zip/refs/heads/main?token=AHQQZOHGSDY7OCDP2N73DJTFJCUMQ">Here</a>.</li>
-  <li><strong>Unpack:</strong> Extract the contents of the ZIP file.</li>
-  <li><strong>Developer Mode:</strong> In Chrome, open 'Extensions', and enable 'Developer Mode'.</li>
-  <li><strong>Load Extension:</strong> Choose 'Load unpacked' and navigate to the extension folder.</li>
-  <li><strong>Enjoy:</strong> Start watching YouTube without ad interruptions!</li>
-</ol>
+![Two-row timeline of eight receipt-bound offline MV3 lifecycle observations](docs/assets/lifecycle-timeline.svg)
 
-<h2>Usage</h2>
+![Receipt-bound matrix showing counter, worker, target, SPA, ad-pod, and two-tab observations](docs/assets/lifecycle-matrix.png)
 
-<p>
-Once installed, the extension will automatically take care of ads on YouTube, allowing you to enjoy your content seamlessly.
+The exact observations are available as a
+[canonical JSON receipt](docs/evidence/lifecycle-evidence.json) and
+[plain-text transcript](docs/evidence/lifecycle-evidence.txt). Neither contains
+action UUIDs, extension/CDP identifiers, Blob URLs, timestamps, or host paths;
+every rendering displays and verifies the canonical receipt SHA-256.
+
+#### Real popup after worker wake-up
+
+<p align="center">
+  <img src="docs/assets/popup-lifecycle-final.png" width="336" alt="Actual unpacked YouTube Ad Skipper popup showing six durable skip actions after the offline service-worker wake-up">
 </p>
 
-<h2>Support</h2>
+This is the actual packaged popup from the same fresh-profile replay, captured
+after the content message woke the stopped worker and all three observable
+counter channels agreed on `6`. It is co-captured evidence, not a rendered
+receipt panel.
 
-<p>
-Having trouble? Write <a href="https://t.me/omar07ibrahim">Here</a> and we'll help you sort it out.
+### Offline extension workflow
+
+<p align="center">
+  <img src="docs/assets/offline-workflow.gif" width="720" alt="Three-frame recording of the real unpacked extension popup changing from zero to one after an offline DOM-contract fixture">
 </p>
 
-<h2>Screenshots</h2>
+The GIF is composed from three screenshots captured in one real unpacked
+Chromium session: the fresh popup at `0`, the handled offline fixture, and the
+same popup at `1`. Captions are deterministic annotations; the popup and
+fixture pixels come from the running extension. Every other HTTP(S) request
+was aborted. This demonstrates the extension boundary only—it is not live
+YouTube-ad acceptance.
 
-<div align="center">
-  <img src="https://ltdfoto.ru/images/2023/11/06/menu.png" alt="Extension settings interface" width="300px" />
-  <p><em>Extension settings interface.</em></p>
-</div>
+### Real unpacked-extension popup
 
-<div align="center">
-  <img src="https://ltdfoto.ru/images/2023/11/06/mini.png" alt="See the extension skipping a YouTube ad" width="200px" />
-  <p><em>See the extension skipping a YouTube ad.</em></p>
-</div>
+<p align="center">
+  <img src="docs/assets/popup-offline-fixture.png" width="336" alt="Actual YouTube Ad Skipper popup showing one skip action after the offline DOM-contract fixture">
+</p>
 
+This is the actual packaged popup in Chromium 140, not a UI mockup. A fresh
+profile loaded the unpacked extension; one clearly named offline DOM-contract
+fixture exercised the real content script and MV3 service worker, producing the
+visible count of `1`. The capture aborted every other HTTP(S) request. It is
+evidence of the extension boundary, not a claim about a live YouTube ad.
 
-<div align="center">
-  <p><strong>https://kofe.al/@gagalar</strong></p>
-</div>
+### Production policy output
+
+![Terminal-style rendering of the deterministic production-function policy matrix produced by content.js](docs/assets/policy-matrix.png)
+
+The underlying [plain-text transcript](docs/evidence/policy-matrix.txt) is
+computed directly by `content.js::choosePlaybackRate`. The scenarios expose the
+grace boundary, long-ad ceiling, short remainder, user-selected rate, and
+unknown-duration fallback.
+
+### Measured test coverage
+
+![Line, branch, and function coverage for background.js, content.js, and popup.js](docs/assets/coverage.svg)
+
+The chart is generated from Node's built-in coverage report. Exact values live
+in [coverage-summary.json](docs/evidence/coverage-summary.json); every input and
+output hash, browser version, fixture contract, and network rule is recorded in
+[visual-manifest.json](docs/evidence/visual-manifest.json).
+
+## Install the unpacked extension
+
+![Five-step setup flow: clone, open Chrome extensions, enable Developer mode, load the unpacked root, then inspect the popup and console](docs/assets/setup-flow.svg)
+
+1. Clone this repository.
+2. Open `chrome://extensions`.
+3. Enable **Developer mode**.
+4. Select **Load unpacked**.
+5. Choose the repository root (the directory containing `manifest.json`).
+
+Chrome 102 or newer is required because local storage is restricted to trusted
+extension contexts with `storage.local.setAccessLevel`.
+
+## Verify the implementation
+
+The extension runtime and core tests have no third-party dependencies. Node.js
+18 or newer is enough; `npm ci` installs three pinned development tools used
+for PNG, GIF, and Chromium evidence:
+
+```bash
+npm ci --ignore-scripts
+npm run check
+npm run coverage
+```
+
+The tests exercise rate ownership, short-ad boundaries, ad-pod transitions,
+retryable restoration, one-click-per-episode behavior, exact action
+acknowledgements, replay suppression, storage-to-badge recovery, concurrent
+counter updates, page lifecycle, fixture phase guards, canonical lifecycle
+normalization, receipt-bound renderers, sender validation, permission
+minimization, and every local manifest asset.
+
+The checked-in visuals are regenerated with a digest-pinned official Playwright
+container:
+
+```bash
+npm run visuals:capture
+npm run visuals:verify
+```
+
+The wrapper first performs a fresh `npm ci --ignore-scripts` in disposable
+scratch space, where npm verifies the pinned package integrities. The capture
+container mounts an isolated scratch tree containing the hash-bound source
+inputs plus freshly lockfile-installed development dependencies—not the working
+repository—with private IPC, a loopback-only network namespace, and a fresh
+browser profile. Only verified, allowlisted outputs are promoted back; all
+scratch data is removed.
+
+The manifest and bound scripts form a reproducibility and drift contract. They
+record the exact image digest, tool versions, observed network namespace,
+fixture fulfillment, inputs, and outputs. Lifecycle transcript and timeline
+bytes are rebuilt from the canonical receipt; matrix and GIF pixels are decoded
+and hash-checked; the final popup is separately co-bound to the receipt. This is
+useful provenance evidence, not cryptographic attestation of the machine or
+operator.
+
+GIF verification does not stop at the file hash or animation envelope. The
+independent decoder bounds input and decompressed pixels, requires complete LZW
+streams and exact frame controls, then matches the decoded RGB SHA-256 of every
+frame. Negative tests cover malformed controls, missing end codes, trailing
+controls, and decompression-boundary abuse.
+
+## Privacy and permissions
+
+| Surface | Behavior |
+| --- | --- |
+| Site access | Static content script only on `https://www.youtube.com/*` |
+| Named permission | `storage` |
+| Stored value | One local object: count plus at most 256 random action IDs |
+| Remote code/assets | None |
+| Analytics or telemetry | None |
+
+Version 2 migrates the legacy integer by writing the versioned state first and
+removing the old key second. If removal is interrupted, both values can briefly
+coexist; the versioned state remains authoritative and the next successful
+worker operation retries cleanup.
+
+The popup has no donation widget, personal contact link, or remotely hosted
+image. Compatibility reports belong in
+[GitHub Issues](https://github.com/omar07ibrahim/YouTube-Ad-Skipper/issues).
+
+## Compatibility status
+
+YouTube's CSS classes are not a public API and can change without notice. The
+pure controller and service-worker behavior are covered by deterministic tests;
+the offline unpacked-extension boundary is captured above. A live-site
+Chromium acceptance run is still required before version 2 is tagged or issue
+[#3](https://github.com/omar07ibrahim/YouTube-Ad-Skipper/issues/3) is closed.
+In particular, a real short-ad run must confirm that the grace policy behaves
+as intended.
+
+## License
+
+[MIT](LICENSE) © 2026 Omar Ibrahim

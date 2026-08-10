@@ -1,0 +1,81 @@
+{
+  "schemaVersion": 1,
+  "scenario": "offline-mv3-lifecycle-v1",
+  "fixtureFulfillments": 4,
+  "unexpectedHttpRequests": 0,
+  "steps": [
+    {
+      "kind": "fresh_profile",
+      "count": 0,
+      "restartCycle": 0,
+      "runningStatus": "running",
+      "activeTargetCount": 1
+    },
+    {
+      "kind": "initial_action",
+      "count": 1,
+      "clickCount": 1
+    },
+    {
+      "kind": "spa_rate_restore",
+      "count": 2,
+      "clickCount": 1,
+      "sameDocument": true,
+      "acceleratedRate": 2,
+      "rateAtClick": 1
+    },
+    {
+      "kind": "ad_pod_rotation",
+      "count": 3,
+      "clickCount": 1,
+      "sameVideoElement": true,
+      "sourceChanged": true
+    },
+    {
+      "kind": "two_tab_barrier",
+      "count": 5,
+      "countDelta": 2,
+      "clickCounts": [
+        1,
+        1
+      ],
+      "restartCycle": 0
+    },
+    {
+      "kind": "worker_stopped",
+      "count": 5,
+      "restartCycle": 0,
+      "runningStatuses": [
+        "running",
+        "stopped"
+      ],
+      "activeTargetCounts": [
+        1,
+        0
+      ]
+    },
+    {
+      "kind": "worker_woken",
+      "count": 6,
+      "clickCount": 1,
+      "previousRestartCycle": 0,
+      "restartCycle": 1,
+      "runningStatuses": [
+        "running",
+        "stopped",
+        "running"
+      ],
+      "activeTargetCounts": [
+        1,
+        0,
+        1
+      ],
+      "sameRegistration": true,
+      "sameVersion": true
+    },
+    {
+      "kind": "final_popup",
+      "count": 6
+    }
+  ]
+}
